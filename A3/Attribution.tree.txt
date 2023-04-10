@@ -1,0 +1,21 @@
+source:
+	https://skybox.blockadelabs.com/
+
+	files attributed:
+		dreamlike_nebula.jpg
+		digital_painting_sea_of_stars.jpg
+	
+	License:
+		None found, contacting Blockade Labs
+		https://www.blockadelabs.com
+	
+source:
+	https://skybox-generator.vercel.app/
+		
+	files attributed:
+		skybox (NebulaSky derived from dreamlike_nebula)
+		skybox (SpaceSky derived from digital_painting_sea_of_stars)
+		
+	License:
+		https://github.com/jaxry/panorama-to-cubemap/blob/gh-pages/LICENSE
+		
