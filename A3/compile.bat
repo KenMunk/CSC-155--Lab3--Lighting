@@ -1,0 +1,1 @@
+javac code/*.java
