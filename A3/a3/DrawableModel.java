@@ -13,23 +13,28 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GLContext;
 import org.joml.*;
 
+//The idea at play here is that the drawable model will integrate the mvstack by performing all operations before going on to its children then popping its own level of the stack.
+
 public class DrawableModel{
 	
-	private Vector3f globalPosition;
-	private Vector3f rotation;
-	private Vector3f scale;
+	protected Vector3f globalPosition;
+	protected Vector3f rotation;
+	protected Vector3f scale;
 	
-	private String modelPath;
-	private String primaryTexturePath;
+	protected String modelPath;
+	protected String primaryTexturePath;
 	
-	private ImportedModel model;
-	private int numObjVertices;
+	protected ImportedModel model;
+	protected int numObjVertices;
 	
-	private int vbo[] = new int[3];
+	protected int vbo[] = new int[3];
 	
-	private int primaryModelTexture;
+	protected int primaryModelTexture;
 	
-	private int renderingProgram;
+	protected int renderingProgram;
+	
+	//Making children public so that it is easier to edit them
+	public DrawableModel[] child;
 	
 	public DrawableModel(String modelPath, String primaryTexturePath, int renderingProgram){
 		
@@ -49,6 +54,10 @@ public class DrawableModel{
 		this.model = new ImportedModel(modelPath);
 		this.primaryModelTexture = Utils.loadTexture(primaryTexturePath);
 		
+	}
+	
+	public void setupVertices(){
+		this.setupVertices(new int[1],0);
 	}
 	
 	public void setupVertices(int vao[], int vaoIndex){
@@ -87,6 +96,26 @@ public class DrawableModel{
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvalues);
 		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
+		
+	}
+	
+	public void addChild(DrawableModel newChild){
+		newChild.loadModelData();
+		newChild.setupVertices();
+		
+		if(this.child == null ){
+			this.child = new DrawableModel[1];
+			this.child[0] = newChild;
+		}
+		else{
+			DrawableModel[] updatedChildren = new DrawableModel[this.child.length+1];
+			
+			for(int i = 0; i<this.child.length; i++){
+				updatedChildren[i] = this.child[i];
+			}
+			
+			updatedChildren[updatedChildren.length-1] = newChild;
+		}
 		
 	}
 	
@@ -141,25 +170,28 @@ public class DrawableModel{
 		gl.glBindTexture(GL_TEXTURE_2D, this.primaryModelTexture);
 	}
 	
-	public Matrix4f createModelMatrix(){
-		Matrix4f modelMatrix = new Matrix4f();
-		
-		modelMatrix.identity();
+	public void createModelMatrix(Matrix4fStack stackMat){
 		
 		
-		modelMatrix.rotate(this.getRotation().x(),1f,0,0);
-		modelMatrix.rotate(this.getRotation().y(),0,1f,0);
-		modelMatrix.rotate(this.getRotation().z(),0,0,1f);
+		stackMat.rotate(this.getRotation().x(),1f,0,0);
+		stackMat.rotate(this.getRotation().y(),0,1f,0);
+		stackMat.rotate(this.getRotation().z(),0,0,1f);
 		
-		
-		modelMatrix.translate(this.getPosition());
-		
-		modelMatrix.scale(this.scale);
-		
-		return(modelMatrix);
+		stackMat.translate(this.getPosition());
+		stackMat.scale(this.scale);
 	}
 	
-	public void render(Matrix4f viewMat, Matrix4f perspectiveMat){
+	public void renderChildren(Matrix4fStack stackMat, Matrix4f perspectiveMat){
+		
+		if(this.child != null){
+			for(int i = 0; i<this.child.length; i++){
+				this.child[i].render(stackMat,perspectiveMat);
+			}
+		}
+		
+	}
+	
+	public void render(Matrix4fStack stackMat, Matrix4f perspectiveMat){
 		
 		this.startRenderer();
 		
@@ -167,23 +199,15 @@ public class DrawableModel{
 		
 		FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 		
-		/*
-		
-		Referring to the code from Chapter 6 program 3 what we could do
-		is completely avoid using the matrix stack and use individual matrices for the model matrix, view matrix, and the perspective matrix and then multiply them all together when rendering before passing them to the rendering program
-		
-		*/
-		
 		//Get the matrices 
 		int mvLoc = gl.glGetUniformLocation(renderingProgram, "mv_matrix");
 		int pLoc = gl.glGetUniformLocation(renderingProgram, "p_matrix");
 		
-		Matrix4f mvMat = new Matrix4f().identity();
-		mvMat.mul(viewMat);
-		mvMat.mul(this.createModelMatrix());
+		stackMat.pushMatrix();
+		this.createModelMatrix(stackMat);
 		
 		
-		gl.glUniformMatrix4fv(mvLoc, 1, false, mvMat.get(vals));
+		gl.glUniformMatrix4fv(mvLoc, 1, false, stackMat.get(vals));
 		gl.glUniformMatrix4fv(pLoc, 1, false, perspectiveMat.get(vals));
 		
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -202,5 +226,8 @@ public class DrawableModel{
 		gl.glDepthFunc(GL_LEQUAL);
 		gl.glDrawArrays(GL_TRIANGLES, 0, model.getNumVertices());
 		
+		this.renderChildren(stackMat, perspectiveMat);
+		
+		stackMat.popMatrix();
 	}
 }

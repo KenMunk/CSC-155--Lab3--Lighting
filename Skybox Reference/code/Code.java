@@ -60,7 +60,7 @@ public class Code extends JFrame implements GLEventListener
 
 		pLoc = gl.glGetUniformLocation(renderingProgramCubeMap, "p_matrix");
 		gl.glUniformMatrix4fv(pLoc, 1, false, pMat.get(vals));
-				
+		
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
