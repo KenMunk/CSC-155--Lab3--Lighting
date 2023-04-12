@@ -1,1 +1,1 @@
-javac code/*.java
+javac a3/*.java
