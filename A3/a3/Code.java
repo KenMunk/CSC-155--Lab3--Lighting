@@ -225,6 +225,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		mvStack.setLookAt(cameraEye, lookTarget, upReference);
 		
+		
 		spaceBox.render(mvStack,pMat);
 		
 		tf = 5f;  // time factor
