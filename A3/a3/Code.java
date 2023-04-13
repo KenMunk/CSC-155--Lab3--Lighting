@@ -43,22 +43,24 @@ public class Code extends JFrame implements GLEventListener
 	private int vao[] = new int[1];
 	private int vbo[] = new int[2];
 	
-	private float cameraX, cameraY, cameraZ;
 	
 	// allocate variables for display() function
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
-	private Matrix4fStack mvStack = new Matrix4fStack(5);
+	private Matrix4fStack mStack = new Matrix4fStack(5);
 	private Matrix4f pMat = new Matrix4f();
 	private int mvLoc, pLoc;
 	private float aspect;
 	private double tf;
-	private float cameraRotation = 0;
 	
 	//Implementing a hash map to make managing so many models easier
 	private Map<String, DrawableModel> model = new HashMap<String, DrawableModel>();
 	
 	private SkyCube spaceBox;
 	
+	private Camera mainCamera = new Camera();
+	
+	private float cameraRotation = 0;
+	private float cameraX, cameraY, cameraZ;
 	private float camYaw = 0f; //Side to side
 	private float camPitch = 0f; //up down
 	private float camRoll = 0f; //roll screen
@@ -153,7 +155,10 @@ public class Code extends JFrame implements GLEventListener
 	}
 	
 	public void display(GLAutoDrawable drawable)
-	{	GL4 gl = (GL4) GLContext.getCurrentGL();
+	{	
+	
+		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+		GL4 gl = (GL4) GLContext.getCurrentGL();
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		
@@ -168,99 +173,61 @@ public class Code extends JFrame implements GLEventListener
 		
 		//System.out.println("Frames Elapsed = " + frames);
 		
-		gl.glUseProgram(renderingProgram);
-
-		mvLoc = gl.glGetUniformLocation(renderingProgram, "mv_matrix");
-		pLoc = gl.glGetUniformLocation(renderingProgram, "p_matrix");
-		
 		//gl.glMatrixMode(GL_PROJECTION);
 		
 		pMat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		gl.glUniformMatrix4fv(pLoc, 1, false, pMat.get(vals));
 		
 
-		// push view matrix onto the stack
-		//So this translates the camera
-		//*
-		//Camera rotation radians needs to be done as a mod of 6.28319
-		//in order to ensure that the camera completes a full circle
-		cameraRotation = 6.28319f;
-		//https://www.geeksforgeeks.org/java-todegrees-method-example/
-		//https://www.tutorialspoint.com/java/number_abs.htm
-		mvStack.pushMatrix();
-		this.camYaw = (this.camYaw + yawTurnAxis.getValue()/frames) % cameraRotation; //Side to side
-		
-		//We're going to limit the vertical axis to 90 and -90
-		camPitch = (camPitch + pitchTurnAxis.getValue()/frames); //up down
-		if(Math.abs(camPitch) > (Math.PI/2)-0.05f){
-			camPitch = (((float)Math.PI/2)-0.05f)*(camPitch/Math.abs(camPitch));
-		}
-		camRoll = 0f; //roll screen
-		
-		//Instead of having the angle assigned to the first values
-		//we can set the angle to 1f as the magnitude of change,
-		//and then assign a rotation angle to each axis
-		
-		cameraZ += fwdAxis.getValue()/frames;
-		cameraY += verticalAxis.getValue()/frames;
-		cameraX += sideAxis.getValue()/frames;
-		
-		mvStack.translate(-cameraX, -cameraY, -cameraZ);
-		
-		//SkyCube goes here
+		mStack.pushMatrix();
 		
 		
-		//==================================
-		//Figuring out where we're looking
-		
-		Vector3f cameraEye = new Vector3f(-cameraX, -cameraY, -cameraZ);
-		
-		Vector3f lookTarget = new Vector3f((float)Math.sin(this.camYaw)*1.0f, 0.0f, (float)Math.cos(this.camYaw)*1.0f*(float)Math.cos(camPitch));
-		
-		//For up down camera rotation we're going to fix the rotation to -90 and 90 as our bounds
-		lookTarget.add(new Vector3f(0f, (float)Math.sin(camPitch)*1.0f, 0f));
-		
-		lookTarget.add(cameraEye);
-		Vector3f upReference = new Vector3f(0,1,0);
-		
-		mvStack.setLookAt(cameraEye, lookTarget, upReference);
 		
 		
-		spaceBox.render(mvStack,pMat);
+		
+		//////////////////////////////////////////////////
+		//Camera stuff starts here
+		//////////////////////////////////////////////////
+		
+		mainCamera.localRotateThenTranslate(
+			new Vector3f(
+			
+				-sideAxis.getValue()/frames,
+				-verticalAxis.getValue()/frames,
+				-fwdAxis.getValue()/frames
+			),
+			new Vector3f(
+				-pitchTurnAxis.getValue()*frames,
+				-yawTurnAxis.getValue()*frames,
+				0
+			)
+		);
+		
+		//Remove when implementing lighting
+		mStack.mul(mainCamera.returnMatrix());
+		
+		///////////////////////////////////////////////////////////////////////////////////////////////
+		//Object rendering starts here
+		///////////////////////////////////////////////////////////////////////////////////////////////
+		
+		//skybox
+		spaceBox.render(mStack,pMat);
 		
 		tf = 5f;  // time factor
 		
-		//*
-		// ----------------------  pyramid == sun  
-		
-		//Push translation matrix
-		mvStack.pushMatrix();
-		mvStack.translate(0.0f, 0.0f, 0.0f);
-		
-		//Then push rotations
-		mvStack.pushMatrix();
-		
+		/*Broken Axis (Need to bring back code for this or break the axis into another class)
 		if(showAxis){
 			
-			mvStack.translate(10f,0f,0f);
-			gl.glUniformMatrix4fv(mvLoc,1,false,mvStack.get(vals));
+			mStack.translate(10f,0f,0f);
+			gl.glUniformMatrix4fv(mvLoc,1,false,mStack.get(vals));
 			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 			gl.glVertexAttribPointer(0,3,GL_FLOAT,false, 0,0);
 			gl.glEnableVertexAttribArray(0);
 			gl.glDrawArrays(GL_LINES, 0, 6);
 		}
-		mvStack.popMatrix();
-		mvStack.popMatrix();
-		//-----------------------  cube == planet  -- converted to 4-face pyramid
-		mvStack.pushMatrix();
-		mvStack.translate((float)Math.sin(tf/frames)*4.0f, 0.0f, (float)Math.cos(tf/frames)*4.0f);
-		mvStack.pushMatrix();
+		//*/
 		
-		
-		mvStack.popMatrix();
-		mvStack.popMatrix();
-		
-		model.get("caltrop1").rotate(new Vector3f(0,0.005f/frames,0));
+		model.get("caltrop1").rotate(new Vector3f(0,0.005f*frames,0));
 		model.get("caltrop1").setScale(new Vector3f((float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f));
 		
 		model.get("caltrop2").rotate(new Vector3f(0,0.005f/frames,0));
@@ -268,19 +235,27 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Using the lambda function iteration approach
 		//https://www.geeksforgeeks.org/how-to-iterate-hashmap-in-java/#
-		model.forEach((key,target) -> target.render(mvStack,pMat));
+		model.forEach((key,target) -> target.render(mStack,pMat));
 		
+		
+		////////////////////////////////////////////
+		// Done
+		//////////////////////////////////////
 		
 		//*/
-		mvStack.popMatrix();
+		mStack.popMatrix();
 		
 	}
 	
 	//Init
 	public void init(GLAutoDrawable drawable)
 	{	GL4 gl = (GL4) GLContext.getCurrentGL();
-	
+		
+		//Camera Prep Stuff
+		
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+		
+		//viewMatrix.identity();
 		
 		snap = Instant.now();
 		frameCycle = 0;
@@ -295,10 +270,17 @@ public class Code extends JFrame implements GLEventListener
 		
 		//*/
 		
-		renderingProgram = Utils.createShaderProgram("a3/vertShader.glsl", "a3/fragShader.glsl");
+		/*Shaders====================================
+		=============================================
+		*/
+		renderingProgram = Utils.createShaderProgram(
+			"a3/vertShader.glsl", 
+			"a3/fragShader.glsl"
+		);
 		
 		int simpleObjRenderer = Utils.createShaderProgram(
-			"a3/objVertShader.glsl", "a3/objFragShader.glsl"
+			"a3/objVertShader.glsl", 
+			"a3/objFragShader.glsl"
 		);
 		
 		int SkyCubeRenderer = Utils.createShaderProgram("a3/vertCShader.glsl", "a3/fragCShader.glsl");
@@ -340,7 +322,8 @@ public class Code extends JFrame implements GLEventListener
 		
 		model.get("sign").translate(new Vector3f(-10f,1f,0f));
 		
-		cameraX = 0.0f; cameraY = 0.0f; cameraZ = 12.0f;
+		//cameraX = 0.0f; cameraY = 0.0f; cameraZ = 12.0f;
+		mainCamera.setPosition(0,0,-12f);
 	}
 
 	public static void main(String[] args) { new Code(); }
