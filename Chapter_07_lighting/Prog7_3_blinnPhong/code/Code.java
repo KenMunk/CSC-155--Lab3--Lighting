@@ -129,6 +129,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		// get the locations of the light and material fields in the shader
 		globalAmbLoc = gl.glGetUniformLocation(renderingProgram, "globalAmbient");
+		
 		ambLoc = gl.glGetUniformLocation(renderingProgram, "light.ambient");
 		diffLoc = gl.glGetUniformLocation(renderingProgram, "light.diffuse");
 		specLoc = gl.glGetUniformLocation(renderingProgram, "light.specular");

@@ -97,6 +97,10 @@ public class DrawableModel{
 		FloatBuffer texBuf = Buffers.newDirectFloatBuffer(tvalues);
 		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit()*4, texBuf, GL_STATIC_DRAW);
 		
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		FloatBuffer normBuf = Buffers.newDirectFloatBuffer(nvalues);
+		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit()*4, normBuf, GL_STATIC_DRAW);
+		
 	}
 	
 	public void addChild(DrawableModel newChild){
