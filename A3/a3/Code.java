@@ -158,11 +158,34 @@ public class Code extends JFrame implements GLEventListener
 	
 	public void display(GLAutoDrawable drawable)
 	{	
+		
+		//GL4 gl = (GL4) GLContext.getCurrentGL();
+		
+		//gl.glEnable(GL_DEBUG_OUTPUT);
+		
+		try{
+			
+			render();
+			
+		}
+		catch( Exception e){
+			e.printStackTrace();
+		}
+	}
 	
-		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+	public void render(){
+		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
+		
+		//gl.setGL(new DebugGL4(gl));
+		
+        //gl.glEnable(GL_DEBUG_OUTPUT);
+		
+		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		
+		//System.out.println("Cleared");
 		
 		elapsedTime = Duration.between(snap,Instant.now()).toMillis();
 		snap = Instant.now();
@@ -184,6 +207,7 @@ public class Code extends JFrame implements GLEventListener
 		mStack.pushMatrix();
 		
 		
+		//System.out.println("matrix ops start");
 		
 		
 		
@@ -223,6 +247,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		spaceBox.render(spaceBoxMat,pMat);
 		
+		//System.out.println("skybox done");
 		//Skybox end
 		
 		tf = 5f;  // time factor
@@ -249,9 +274,13 @@ public class Code extends JFrame implements GLEventListener
 		//https://www.geeksforgeeks.org/how-to-iterate-hashmap-in-java/#
 		
 		
+		lightingProperties.put("light.position", new Vector4f(frameCycle*1f, 5f, 3.0f, 1.0f));
+		
+		
 		model.forEach((key,target) -> target.addMultipleVectorProperties(lightingProperties));
 		model.forEach((key,target) -> target.render(mStack,pMat));
 		
+		//System.out.println("objects rendered");
 		
 		////////////////////////////////////////////
 		// Done
@@ -259,7 +288,6 @@ public class Code extends JFrame implements GLEventListener
 		
 		//*/
 		mStack.popMatrix();
-		
 	}
 	
 	//Init
@@ -269,6 +297,7 @@ public class Code extends JFrame implements GLEventListener
 		//Camera Prep Stuff
 		
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+		//gl.glViewport(0,0,myCanvas.getWidth(),myCanvas.getHeight());
 		
 		//viewMatrix.identity();
 		
@@ -414,7 +443,7 @@ public class Code extends JFrame implements GLEventListener
 		model.get("streetLamp").addADSSTextures(
 			"StreetLamp--High_Poly--TextureLabsMetals.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--diffuse.png",
-			"StreetLamp--High_Poly--TextureLabsMetals--diffuse.png",
+			"StreetLamp--High_Poly--TextureLabsMetals--specularpng.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--shininessmap.png"
 		);
 		/*/
@@ -469,9 +498,9 @@ public class Code extends JFrame implements GLEventListener
 		
 		lightingProperties.put("light.ambient", new Vector4f(0.1f, 0.1f, 0.1f, 1.0f));
 		
-		lightingProperties.put("light.diffuse", new Vector4f(1f, 1f, 1f, 1.0f));
+		lightingProperties.put("light.diffuse", new Vector4f(0.5f, 0.5f, 0.5f, 1.0f));
 		
-		lightingProperties.put("light.specular", new Vector4f(1f, 1f, 1f, 1.0f));
+		lightingProperties.put("light.specular", new Vector4f(0.7f, 0.6f, 0.8f, 1.0f));
 		
 		lightingProperties.put("light.position", new Vector4f(10.0f, 5f, 3.0f, 1.0f));
 	}

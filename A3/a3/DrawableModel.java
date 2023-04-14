@@ -276,7 +276,7 @@ public class DrawableModel{
 		Matrix4f invTrMat = new Matrix4f();
 		
 		modelMatrix.invert(invTrMat);
-		invTrMat.transpose(invTrMat);
+		//invTrMat.transpose(invTrMat);
 		
 		this.addOtherMatrix("norm_matrix", invTrMat);
 	}
