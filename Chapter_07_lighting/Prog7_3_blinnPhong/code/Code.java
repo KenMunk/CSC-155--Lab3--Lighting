@@ -73,7 +73,9 @@ public class Code extends JFrame implements GLEventListener
 		nLoc = gl.glGetUniformLocation(renderingProgram, "norm_matrix");
 		
 		vMat.translation(-cameraLoc.x(), -cameraLoc.y(), -cameraLoc.z());
-
+		
+		
+		//translating the model
 		mMat.translation(torusLoc.x(), torusLoc.y(), torusLoc.z());
 		mMat.rotateX((float)Math.toRadians(35.0f));
 		
@@ -130,10 +132,13 @@ public class Code extends JFrame implements GLEventListener
 		// get the locations of the light and material fields in the shader
 		globalAmbLoc = gl.glGetUniformLocation(renderingProgram, "globalAmbient");
 		
+		//assigning the lighting values via the lighting struct
 		ambLoc = gl.glGetUniformLocation(renderingProgram, "light.ambient");
 		diffLoc = gl.glGetUniformLocation(renderingProgram, "light.diffuse");
 		specLoc = gl.glGetUniformLocation(renderingProgram, "light.specular");
 		posLoc = gl.glGetUniformLocation(renderingProgram, "light.position");
+		
+		//Assigning the object material values to the material struct
 		mambLoc = gl.glGetUniformLocation(renderingProgram, "material.ambient");
 		mdiffLoc = gl.glGetUniformLocation(renderingProgram, "material.diffuse");
 		mspecLoc = gl.glGetUniformLocation(renderingProgram, "material.specular");
@@ -141,10 +146,12 @@ public class Code extends JFrame implements GLEventListener
 	
 		//  set the uniform light and material values in the shader
 		gl.glProgramUniform4fv(renderingProgram, globalAmbLoc, 1, globalAmbient, 0);
+
 		gl.glProgramUniform4fv(renderingProgram, ambLoc, 1, lightAmbient, 0);
 		gl.glProgramUniform4fv(renderingProgram, diffLoc, 1, lightDiffuse, 0);
 		gl.glProgramUniform4fv(renderingProgram, specLoc, 1, lightSpecular, 0);
 		gl.glProgramUniform3fv(renderingProgram, posLoc, 1, lightPos, 0);
+		
 		gl.glProgramUniform4fv(renderingProgram, mambLoc, 1, matAmb, 0);
 		gl.glProgramUniform4fv(renderingProgram, mdiffLoc, 1, matDif, 0);
 		gl.glProgramUniform4fv(renderingProgram, mspecLoc, 1, matSpe, 0);

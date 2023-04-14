@@ -1,5 +1,23 @@
 #version 430
-#include "common.glsl"
+
+//Reusable Section
+
+struct PositionalLight
+{	vec4 ambient;
+	vec4 diffuse;
+	vec4 specular;
+	vec4 position;
+};
+
+uniform vec4 globalAmbient;
+uniform PositionalLight light;
+
+uniform mat4 m_matrix;
+uniform mat4 v_matrix;
+uniform mat4 p_matrix;
+uniform mat4 norm_matrix;
+
+//End Reusable Section
 
 //Loading the vbo locations
 layout (location = 0) in vec3 position;
@@ -12,13 +30,6 @@ out vec3 varyingLightDir;
 out vec3 varyingVertPos;
 out vec3 varyingHalfVector;
 
-uniform vec4 globalAmbient;
-uniform PositionalLight light;
-
-uniform mat4 m_matrix;
-uniform mat4 v_matrix;
-uniform mat4 p_matrix;
-uniform mat4 norm_matrix;
 
 /*//
 Instead of hard-coding the material properties, the material properties will be
@@ -33,19 +44,21 @@ layout (binding=2) uniform sampler2D specularColor;
 layout (binding=3) uniform sampler2D shininessMap;
 
 void main(void)
-{	gl_Position = p_matrix * mv_matrix * vec4(position,1.0);
+{	
 	tc = tex_coord;
 	
-	/*
-	varyingVertPos = (m_matrix * vec4(vertPos,1.0)).xyz;
-	varyingLightDir = light.position - varyingVertPos;
-	varyingNormal = (norm_matrix * vec4(vertNormal,1.0)).xyz;
+	//*
+	
+	varyingVertPos = (m_matrix * vec4(position,1.0)).xyz;
+	varyingLightDir = light.position.xyz - varyingVertPos;
+	varyingNormal = (norm_matrix * vec4(normal,1.0)).xyz;
 	
 	varyingHalfVector =
 		normalize(normalize(varyingLightDir)
 		+ normalize(-varyingVertPos)).xyz;
 
-	gl_Position = p_matrix * v_matrix * m_matrix * vec4(vertPos,1.0);
-	*/
+	gl_Position = p_matrix * v_matrix * m_matrix * vec4(position,1.0);
+	
+	//*/
 	
 }

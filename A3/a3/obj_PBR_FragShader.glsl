@@ -1,5 +1,23 @@
 #version 430
-#include "common.glsl"
+
+//Reusable Section
+
+struct PositionalLight
+{	vec4 ambient;
+	vec4 diffuse;
+	vec4 specular;
+	vec4 position;
+};
+
+uniform vec4 globalAmbient;
+uniform PositionalLight light;
+
+uniform mat4 m_matrix;
+uniform mat4 v_matrix;
+uniform mat4 p_matrix;
+uniform mat4 norm_matrix;
+
+//End Reusable Section
 
 //Takes the texture coordinate from the vertex shader since the texture coordinate is from a VBO
 in vec2 tc;
@@ -12,13 +30,7 @@ in vec3 varyingHalfVector;
 
 out vec4 color;
 
-uniform vec4 globalAmbient;
-uniform PositionalLight light;
 //the material struct has been removed and replaced with 4 textures
-uniform mat4 m_matrix;
-uniform mat4 v_matrix;
-uniform mat4 p_matrix;
-
 //Creates a texture sampler for the texture at binding 0
 layout (binding=0) uniform sampler2D ambientColor;
 layout (binding=1) uniform sampler2D diffuseColor;
@@ -27,10 +39,16 @@ layout (binding=3) uniform sampler2D shininessMap;
 
 void main(void)
 {
-	color = texture(s,tc);
+	//color = texture(s,tc);
+	vec4 ambientColor = texture(ambientColor, tc);
+	vec4 diffuseColor = texture(diffuseColor, tc);
+	vec4 specularColor = texture(specularColor, tc);
+	vec4 shininessLevel = texture(shininessMap, tc);
 	
-	/*
 	
+	//*
+	// Taken from Prog 7-3 blinnPhong and adapting it
+	// This is mostly because I like the output of the blinnPhong
 	// normalize the light, normal, and view vectors:
 	vec3 L = normalize(varyingLightDir);
 	vec3 N = normalize(varyingNormal);
@@ -48,10 +66,15 @@ void main(void)
 	float cosPhi = dot(H,N);
 
 	// compute ADS contributions (per pixel):
-	vec3 ambient = ((globalAmbient * material.ambient) + (light.ambient * material.ambient)).xyz;
-	vec3 diffuse = light.diffuse.xyz * material.diffuse.xyz * max(cosTheta,0.0);
-	vec3 specular = light.specular.xyz * material.specular.xyz * pow(max(cosPhi,0.0), material.shininess*3.0);
-	fragColor = vec4((ambient + diffuse + specular), 1.0);
+	//*Anything mentioning material. is invalid with this implementation
+	
+	
+	vec3 ambient = ((globalAmbient * ambientColor) + (light.ambient * ambientColor)).xyz;
+	vec3 diffuse = light.diffuse.xyz * diffuseColor.xyz * max(cosTheta,0.0);
+	vec3 specular = light.specular.xyz * specularColor.xyz * pow(max(cosPhi,0.0), shininessLevel.x*3.0);
+	color = vec4((ambient + diffuse + specular), 1.0);
+	//color = vec4(ambient,1);
+	//color = light.diffuse;
 	
 	//*/
 }

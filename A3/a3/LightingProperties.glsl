@@ -10,3 +10,5 @@ struct Material
 	vec4 specular;
 	float shininess;
 };
+
+//Unfortunately this does not work since #include is not supported with our GLSL compiler

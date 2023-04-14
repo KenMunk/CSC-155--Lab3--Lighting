@@ -17,6 +17,8 @@ import org.joml.*;
 public class SkyCube extends DrawableModel{
 	
 	protected int vbo[] = new int[4];
+	protected String primaryTexturePath;
+	protected int primaryModelTexture;
 	
 	//Making children public so that it is easier to edit them
 	public DrawableModel[] child;
@@ -37,9 +39,14 @@ public class SkyCube extends DrawableModel{
 	}
 	
 	@Override
+	public void addTexture(int textureUnit, String texturePath){
+		
+	}
+	
+	@Override
 	public void loadModelData(){
 		GL4 gl = (GL4) GLContext.getCurrentGL();
-		this.primaryModelTexture = Utils.loadCubeMap(primaryTexturePath);
+		this.primaryModelTexture = Utils.loadCubeMap(this.primaryTexturePath);
 		gl.glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		
 	}
@@ -108,7 +115,7 @@ public class SkyCube extends DrawableModel{
 		gl.glDisable(GL_DEPTH_TEST);
 		gl.glDrawArrays(GL_TRIANGLES, 0, 36);
 		
-		this.bindTextures();
+		//this.bindTextures();
 		
 		gl.glEnable(GL_DEPTH_TEST);
 		

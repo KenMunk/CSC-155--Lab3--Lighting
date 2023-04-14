@@ -55,6 +55,8 @@ public class Code extends JFrame implements GLEventListener
 	//Implementing a hash map to make managing so many models easier
 	private Map<String, DrawableModel> model = new HashMap<String, DrawableModel>();
 	
+	private HashMap<String, Vector4f> lightingProperties = new HashMap<String, Vector4f>();
+	
 	private SkyCube spaceBox;
 	
 	private Camera mainCamera = new Camera();
@@ -203,15 +205,25 @@ public class Code extends JFrame implements GLEventListener
 			)
 		);
 		
+		
+		
 		//Remove when implementing lighting
-		mStack.mul(mainCamera.returnMatrix());
+		
+		model.forEach((key,target) -> target.addOtherMatrix("v_matrix",mainCamera.returnMatrix()));
 		
 		///////////////////////////////////////////////////////////////////////////////////////////////
 		//Object rendering starts here
 		///////////////////////////////////////////////////////////////////////////////////////////////
 		
 		//skybox
-		spaceBox.render(mStack,pMat);
+		Matrix4fStack spaceBoxMat = new Matrix4fStack(5);
+		
+		spaceBoxMat.set(mStack);
+		spaceBoxMat.mul(mainCamera.returnMatrix());
+		
+		spaceBox.render(spaceBoxMat,pMat);
+		
+		//Skybox end
 		
 		tf = 5f;  // time factor
 		
@@ -235,6 +247,9 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Using the lambda function iteration approach
 		//https://www.geeksforgeeks.org/how-to-iterate-hashmap-in-java/#
+		
+		
+		model.forEach((key,target) -> target.addMultipleVectorProperties(lightingProperties));
 		model.forEach((key,target) -> target.render(mStack,pMat));
 		
 		
@@ -283,50 +298,189 @@ public class Code extends JFrame implements GLEventListener
 			"a3/objFragShader.glsl"
 		);
 		
-		int SkyCubeRenderer = Utils.createShaderProgram("a3/vertCShader.glsl", "a3/fragCShader.glsl");
+		int SkyCubeRenderer = Utils.createShaderProgram(
+			"a3/vertCShader.glsl", 
+			"a3/fragCShader.glsl"
+		);
+		
+		int objPBRenderer = Utils.createShaderProgram(
+			"a3/obj_PBR_VertShader.glsl", "a3/obj_PBR_FragShader.glsl"
+		);
 		
 		spaceBox = new SkyCube("NebulaSky",SkyCubeRenderer);
 		spaceBox.setupVertices();
 		
 		//importing obj models
-		model.put("anvil", (new DrawableModel("Anvil--02--Triangulated.obj","Anvil_Laptop_Sleeve.png", simpleObjRenderer)));
+		model.put("anvil", (new DrawableModel(
+			"Anvil--02--Triangulated.obj",
+			"Anvil_Laptop_Sleeve.png", 
+			simpleObjRenderer,
+			new Vector3f(0f,0.3f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(1f,1f,1f)
+		)));
 		
-		model.put("caltrop1",(new DrawableModel("CaltropStar.obj","castleroof.jpg", simpleObjRenderer)));
+		model.get("anvil").addChild(
+			new DrawableModel(
+				"Gladius_Single.obj",
+				"metal_bare_0012_01_s.jpg",
+				simpleObjRenderer,
+				new Vector3f(2f,2.4f,0f),
+				new Vector3f(3f,3.1f,4.72f),
+				new Vector3f(0.2f,0.2f,0.2f)
+			)
+		);
 		
-		model.put("caltrop2",(new DrawableModel("CaltropStar.obj","castleroof.jpg", simpleObjRenderer)));
+		model.put("caltrop1",(new DrawableModel(
+			"CaltropStar.obj",
+			"castleroof.jpg", 
+			simpleObjRenderer,
+			new Vector3f(3f,10f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(1f,1f,1f)
+		)));
+		
+		model.put("caltrop2",(new DrawableModel(
+			"CaltropStar.obj",
+			"castleroof.jpg", 
+			simpleObjRenderer,
+			new Vector3f(-6f,15f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(1f,1f,1f)
+		)));
 		
 		//Texture Source http://texturelib.com/texture/?path=/Textures/metal/bare/metal_bare_0012
 		
-		model.put("glaidus",new DrawableModel("Gladius_Single.obj","metal_bare_0012_01_s.jpg",simpleObjRenderer));
 		
-		model.put("ringRune",new DrawableModel("GroundRing.obj","RunicRingSegment.png",simpleObjRenderer));
+		model.put("ringRune",new DrawableModel(
+			"GroundRing.obj",
+			"RunicRingSegment.png",
+			simpleObjRenderer,
+			new Vector3f(0f,-0.5f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(6f,0f,6f)
+		));
 		
-		model.put("sign", new DrawableModel("Sign_on_wood_post.obj","World404Sign.png",simpleObjRenderer));
+		model.put("sign", new DrawableModel(
+			"Sign_on_wood_post.obj",
+			"World404Sign.png",
+			simpleObjRenderer,
+			new Vector3f(-10f,-1f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(1f,1f,1f)
+		));
+		
+		model.put("coreIsland", new DrawableModel(
+			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
+			simpleObjRenderer,
+			new Vector3f(0f,-0.6f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(2f,2f,2f)
+		));
+		
+		model.put("woodCrate", new DrawableModel(
+			"TimberCrate--Complete--Default.obj",
+			"TimberBoxTexture--Lab3.png",
+			simpleObjRenderer,
+			new Vector3f(-15f,-0.5f, 6f),
+			new Vector3f(0,5f,0),
+			new Vector3f(2f,2f,2f)
+		));
+		
+		model.put("longTable", new DrawableModel(
+			"LongTable--Simple--SquareLegs.obj",
+			"LongTable--Simple--SquareLegs--Weathered.png",
+			simpleObjRenderer,
+			new Vector3f(0f,-0.4f, 13f),
+			new Vector3f(0,30f,0),
+			new Vector3f(1f,1f,1f)
+		));
+		
+		//Simple_Street_Light--High_Poly.obj
+		//StreetLamp--High_Poly--TextureLabsMetals.png
+		
+		
+		model.put("streetLamp", new DrawableModel(
+			"Simple_Street_Light--High_Poly.obj",
+			"StreetLamp--High_Poly--TextureLabsMetals.png",
+			objPBRenderer,
+			new Vector3f(10f,-1f, -9f),
+			new Vector3f(0,-40f,0),
+			new Vector3f(3f,3f,3f)
+		));
+		
+		//*/
+		model.get("streetLamp").addADSSTextures(
+			"StreetLamp--High_Poly--TextureLabsMetals.png",
+			"StreetLamp--High_Poly--TextureLabsMetals--diffuse.png",
+			"StreetLamp--High_Poly--TextureLabsMetals--diffuse.png",
+			"StreetLamp--High_Poly--TextureLabsMetals--shininessmap.png"
+		);
+		/*/
+		
+		
+		model.get("streetLamp").addADSSTextures(
+			"StreetLamp--High_Poly--TextureLabsMetals.png",
+			"StreetLamp--High_Poly--basic--test.png",
+			"StreetLamp--High_Poly--basic--test.png",
+			"StreetLamp--High_Poly--basic--test.png"
+		);
+		//*/
 		
 		model.forEach((key,target) -> target.loadModelData());
 		model.forEach((key,target) -> target.setupVertices(vao,0));
 		
-		//Initial positions
-		
-		model.get("anvil").translate(new Vector3f(0f,1f,0f));
-		
-		model.get("caltrop1").translate(new Vector3f(3f,10f,0f));
-		
-		model.get("caltrop2").translate(new Vector3f(-3f,10f,0f));
-		
-		model.get("glaidus").translate(new Vector3f(0,5f,0f));
-		model.get("glaidus").setScale(new Vector3f(0.2f,0.2f,0.2f));
-		
-		model.get("ringRune").setScale(new Vector3f(6f,0f,6f));
-		model.get("ringRune").translate(new Vector3f(0f,-0.5f,0f));
-		
-		model.get("sign").translate(new Vector3f(-10f,1f,0f));
 		
 		//cameraX = 0.0f; cameraY = 0.0f; cameraZ = 12.0f;
 		mainCamera.setPosition(0,0,-12f);
+		
+		
+		/*Preparing Lighting Properties
+		
+		private HashMap<String, Vector4f> lightingProperties = new HashMap<String, Vector4f>();
+		
+		
+		// white light properties
+		"globalAmbient" = new float[] { 
+			0.6f, 0.6f, 
+			0.6f, 1.0f 
+		};
+		"light.ambient" = new float[] { 
+			0.1f, 0.1f, 
+			0.1f, 1.0f 
+		};
+		"light.diffuse" = new float[] {
+			1.0f, 1.0f, 
+			1.0f, 1.0f 
+		};
+		"light.specular" = new float[] { 
+			1.0f, 1.0f, 
+			1.0f, 1.0f 
+		};
+		"light.position" = {
+			new Vector3f(5.0f, 2.0f, 2.0f);
+		}
+		*/
+		
+		lightingProperties.put("globalAmbient", new Vector4f(10f/255f, 12f/255f, 35f/255f, 1.0f));
+		
+		//lightingProperties.put("globalAmbient", new Vector4f(0.7f, 1f, 1f, 1.0f));
+		
+		lightingProperties.put("light.ambient", new Vector4f(0.1f, 0.1f, 0.1f, 1.0f));
+		
+		lightingProperties.put("light.diffuse", new Vector4f(1f, 1f, 1f, 1.0f));
+		
+		lightingProperties.put("light.specular", new Vector4f(1f, 1f, 1f, 1.0f));
+		
+		lightingProperties.put("light.position", new Vector4f(10.0f, 5f, 3.0f, 1.0f));
 	}
 
 	public static void main(String[] args) { new Code(); }
-	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+		//Making it so that the screen can be resized without knocking the graphics offline
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		gl.glViewport(0,0,width,height);
+	}
 	public void dispose(GLAutoDrawable drawable) {}
 }
