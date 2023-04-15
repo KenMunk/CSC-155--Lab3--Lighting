@@ -29,6 +29,7 @@ source:
 		Texturelabs_Metal_242M.jpg
 		Texturelabs_Wood_133L.jpg
 		Texturelabs_Wood_167L.jpg
+		Texturelabs_Metal_245M.jpg
 	
 	License:
 		https://texturelabs.org/terms/
@@ -43,5 +44,5 @@ source:
 			Metal_242M -- Hex Floor Texture Partial
 			Wood_133L -- Wood Crate
 			Wood_167L -- Wood Crate
-	
+			Metal_245M -- Wood/Gold Crate
 		

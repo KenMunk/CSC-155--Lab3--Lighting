@@ -38,10 +38,11 @@ handled in the material textures in order to make it easier to diversify materia
 Yes, I'm literally mimicking how Unity is doing their shaders
 //*/
 
-layout (binding=0) uniform sampler2D ambientColor;
-layout (binding=1) uniform sampler2D diffuseColor;
-layout (binding=2) uniform sampler2D specularColor;
-layout (binding=3) uniform sampler2D shininessMap;
+layout (binding=0) uniform sampler2D textureSample;
+layout (binding=1) uniform sampler2D ambientColor;
+layout (binding=2) uniform sampler2D diffuseColor;
+layout (binding=3) uniform sampler2D specularColor;
+layout (binding=4) uniform sampler2D shininessMap;
 
 void main(void)
 {	

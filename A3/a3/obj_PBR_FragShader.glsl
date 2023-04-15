@@ -32,14 +32,17 @@ out vec4 color;
 
 //the material struct has been removed and replaced with 4 textures
 //Creates a texture sampler for the texture at binding 0
-layout (binding=0) uniform sampler2D ambientColor;
-layout (binding=1) uniform sampler2D diffuseColor;
-layout (binding=2) uniform sampler2D specularColor;
-layout (binding=3) uniform sampler2D shininessMap;
+layout (binding=0) uniform sampler2D textureSample;
+layout (binding=1) uniform sampler2D ambientColor;
+layout (binding=2) uniform sampler2D diffuseColor;
+layout (binding=3) uniform sampler2D specularColor;
+layout (binding=4) uniform sampler2D shininessMap;
 
 void main(void)
 {
 	//color = texture(s,tc);
+	vec4 textureColor = texture(textureSample, tc);
+	
 	vec4 ambientColor = texture(ambientColor, tc);
 	vec4 diffuseColor = texture(diffuseColor, tc);
 	vec4 specularColor = texture(specularColor, tc);
@@ -72,9 +75,20 @@ void main(void)
 	vec3 ambient = ((globalAmbient * ambientColor) + (light.ambient * ambientColor)).xyz;
 	vec3 diffuse = light.diffuse.xyz * diffuseColor.xyz * max(cosTheta,0.0);
 	vec3 specular = light.specular.xyz * specularColor.xyz * pow(max(cosPhi,0.0), shininessLevel.x*3.0);
-	color = vec4((ambient + diffuse + specular), 1.0);
+	
+	vec3 adsRaw = (ambient + diffuse + specular);
+	float maxValue =  max(max(adsRaw.x, adsRaw.y), adsRaw.z);
+	if(maxValue < 1){
+		maxValue = 1;
+	}
+	color = textureColor * vec4((adsRaw/maxValue), 1.0);
 	//color = vec4(ambient,1);
 	//color = light.diffuse;
+	//color = ambientColor;
+	//color = textureColor;
+	
+	//Observation
+	//Running Clip Studio Paint in parallel to the program causes the program to fail
 	
 	//*/
 }

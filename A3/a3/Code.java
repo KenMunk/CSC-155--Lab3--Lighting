@@ -13,13 +13,17 @@ import javax.swing.*;
 
 import java.util.ArrayList;
 
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.FocusEvent;
+
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyListener;
 import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.MouseMotionListener;
 
 import static com.jogamp.opengl.GL4.*;
 import com.jogamp.opengl.*;
@@ -36,6 +40,7 @@ public class Code extends JFrame implements GLEventListener
 	Instant snap;
 	long elapsedTime;
 	int frameCycle;
+	int lightTimer = 0;
 	private int renderingProgram;
 	
 	//VAO and VBO initialization
@@ -74,6 +79,9 @@ public class Code extends JFrame implements GLEventListener
 	private AxisState yawTurnAxis = new AxisState(0.01f, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
 	boolean showAxis = true;
 	
+	boolean clickPress = false;
+	Vector3f lanternLocation = new Vector3f(2,0,10);
+	
 
 	public Code()
 	{	setTitle("Chapter 4 - program 4");
@@ -86,8 +94,8 @@ public class Code extends JFrame implements GLEventListener
 		animator.start();
 		
 		//Control inputs
-		this.setFocusable(true);
-		this.addKeyListener(new KeyAdapter() {
+		myCanvas.setFocusable(true);
+		myCanvas.addKeyListener(new KeyAdapter() {
 			
 			public void keyPressed(KeyEvent e){
 				
@@ -126,12 +134,79 @@ public class Code extends JFrame implements GLEventListener
 		//https://docs.oracle.com/javase/7/docs/api/java/awt/Component.html#requestFocus(boolean)
 		
 		*/
-		this.addFocusListener(new FocusAdapter() {
+		myCanvas.addFocusListener(new FocusAdapter() {
+			
 			public void focusGained(FocusEvent e) {
-				System.out.println("Focus gained");
+				//System.out.println("Focus gained");
 			}
 			public void focusLost(FocusEvent e) {
 				requestFocusInWindow();
+			}
+		});//*/
+		
+		
+		myCanvas.addMouseListener(new MouseAdapter(){
+			
+			@Override
+			public void mouseClicked(MouseEvent e){
+				//clickPress = true;
+				//System.out.println("Click Event");
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e){
+				clickPress = true;
+				//System.out.println("Click Press");
+			}
+			
+			@Override
+			public void mouseReleased(MouseEvent e){
+				
+				clickPress = false;
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e){
+				
+				clickPress = false;
+				System.out.println("Mouse has left the room");
+			}
+		});
+		
+		myCanvas.addMouseMotionListener(new MouseAdapter(){
+			
+			@Override
+			public void mouseDragged(MouseEvent e){
+				
+				
+				if(clickPress){
+					float xPosition = ((float)e.getX()/((float)myCanvas.getWidth()+0.1f)-0.5f)*(-15);
+					float yPosition = ((float)e.getY()/((float)myCanvas.getHeight()+0.1f)-0.5f)*(10);
+					
+					//System.out.println("Mouse at: " + xPosition + ", " + yPosition);
+					//aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+					
+					
+					lanternLocation = lanternLocation.set(
+						xPosition,
+						yPosition,
+						lanternLocation.z
+					);
+					
+					//System.out.println("Lantern Location = " + lanternLocation);
+					
+				}
+			}
+		});
+		
+		myCanvas.addMouseWheelListener(new MouseAdapter(){
+			
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e){
+				float movementSteps = ((float)e.getWheelRotation())*0.3f;
+				
+				
+				lanternLocation = lanternLocation.add(0,0,movementSteps);
 			}
 		});
 		
@@ -229,7 +304,24 @@ public class Code extends JFrame implements GLEventListener
 			)
 		);
 		
+		if(frameCycle == 0){
+			lightTimer++;
+			lightTimer%=61;
+		}
 		
+		Matrix4f lanternMat = new Matrix4f(mainCamera.returnMatrix());
+		
+		//This is where the mouse clicks will take me
+		lanternMat.translateLocal(lanternLocation);
+		lanternMat.invert();
+		Vector3f lanternPosition = new Vector3f();
+		lanternMat.getTranslation(lanternPosition);
+		
+		lightingProperties.put("light.position", new Vector4f(lanternPosition, 
+			1.0f
+		));
+		
+		model.get("lantern").setPosition(lanternPosition);
 		
 		//Remove when implementing lighting
 		
@@ -270,11 +362,10 @@ public class Code extends JFrame implements GLEventListener
 		model.get("caltrop2").rotate(new Vector3f(0,0.005f/frames,0));
 		model.get("caltrop2").setScale(new Vector3f((float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f));
 		
+		model.get("anvil").translate(new Vector3f(0f,0.05f*((float)frameCycle-30)/30f,0f));
+		
 		//Using the lambda function iteration approach
 		//https://www.geeksforgeeks.org/how-to-iterate-hashmap-in-java/#
-		
-		
-		lightingProperties.put("light.position", new Vector4f(frameCycle*1f, 5f, 3.0f, 1.0f));
 		
 		
 		model.forEach((key,target) -> target.addMultipleVectorProperties(lightingProperties));
@@ -303,6 +394,45 @@ public class Code extends JFrame implements GLEventListener
 		
 		snap = Instant.now();
 		frameCycle = 0;
+		
+		/*Preparing Lighting Properties
+		
+		private HashMap<String, Vector4f> lightingProperties = new HashMap<String, Vector4f>();
+		
+		
+		// white light properties
+		"globalAmbient" = new float[] { 
+			0.6f, 0.6f, 
+			0.6f, 1.0f 
+		};
+		"light.ambient" = new float[] { 
+			0.1f, 0.1f, 
+			0.1f, 1.0f 
+		};
+		"light.diffuse" = new float[] {
+			1.0f, 1.0f, 
+			1.0f, 1.0f 
+		};
+		"light.specular" = new float[] { 
+			1.0f, 1.0f, 
+			1.0f, 1.0f 
+		};
+		"light.position" = {
+			new Vector3f(5.0f, 2.0f, 2.0f);
+		}
+		*/
+		
+		//lightingProperties.put("globalAmbient", new Vector4f(10f/255f, 12f/255f, 35f/255f, 1.0f));
+		
+		lightingProperties.put("globalAmbient", new Vector4f(0.5f, 0.3f, 0.6f, 1.0f));
+		
+		lightingProperties.put("light.ambient", new Vector4f(0.3f, 0.3f, 0.3f, 1.0f));
+		
+		lightingProperties.put("light.diffuse", new Vector4f(0.5f, 0.5f, 0.5f, 1.0f));
+		
+		lightingProperties.put("light.specular", new Vector4f(0.8f, 0.7f, 1f, 1.0f));
+		
+		lightingProperties.put("light.position", new Vector4f(10.0f, 5f, 3.0f, 1.0f));
 		
 		/*//It seems that models and textures are loaded during initialization...
 		//(Program 6 Shuttle loader)
@@ -344,7 +474,7 @@ public class Code extends JFrame implements GLEventListener
 			"Anvil--02--Triangulated.obj",
 			"Anvil_Laptop_Sleeve.png", 
 			simpleObjRenderer,
-			new Vector3f(0f,0.3f,0f),
+			new Vector3f(0f,1f,0f),
 			new Vector3f(0f,0f,0f),
 			new Vector3f(1f,1f,1f)
 		)));
@@ -393,11 +523,18 @@ public class Code extends JFrame implements GLEventListener
 		model.put("sign", new DrawableModel(
 			"Sign_on_wood_post.obj",
 			"World404Sign.png",
-			simpleObjRenderer,
+			objPBRenderer,
 			new Vector3f(-10f,-1f,0f),
 			new Vector3f(0f,0f,0f),
 			new Vector3f(1f,1f,1f)
 		));
+		
+		model.get("sign").addADSSTextures(
+			"Sign_on_wood_post--World404--Ambient.png",
+			"Sign_on_wood_post--World404--Diffuse.png",
+			"Sign_on_wood_post--World404--Specular.png",
+			"Sign_on_wood_post--World404--Shininess.png"
+		);
 		
 		model.put("coreIsland", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
@@ -428,7 +565,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Simple_Street_Light--High_Poly.obj
 		//StreetLamp--High_Poly--TextureLabsMetals.png
-		
+		//*
 		
 		model.put("streetLamp", new DrawableModel(
 			"Simple_Street_Light--High_Poly.obj",
@@ -439,70 +576,53 @@ public class Code extends JFrame implements GLEventListener
 			new Vector3f(3f,3f,3f)
 		));
 		
-		//*/
 		model.get("streetLamp").addADSSTextures(
-			"StreetLamp--High_Poly--TextureLabsMetals.png",
+			"StreetLamp--High_Poly--basic--test.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--diffuse.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--specularpng.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--shininessmap.png"
 		);
-		/*/
-		
-		
-		model.get("streetLamp").addADSSTextures(
-			"StreetLamp--High_Poly--TextureLabsMetals.png",
-			"StreetLamp--High_Poly--basic--test.png",
-			"StreetLamp--High_Poly--basic--test.png",
-			"StreetLamp--High_Poly--basic--test.png"
-		);
 		//*/
+		
+		model.put("OldGoldBox", new DrawableModel(
+			"TimberCrate--Complete--Default.obj",
+			"TimberBoxTexture--Lab3--GoldPanel--WoodTrim--Base.png",
+			objPBRenderer,
+			new Vector3f(-15f,-0.5f, -6f),
+			new Vector3f(0,8f,0),
+			new Vector3f(2f,2f,2f)
+		));
+		
+		model.get("OldGoldBox").addADSSTextures(
+			"TimberBoxTexture--Lab3--GoldPanel--WoodTrim--Ambient.png",
+			"TimberBoxTexture--Lab3--GoldPanel--Diffuse.png",
+			"TimberBoxTexture--Lab3--GoldPanel--Specular.png",
+			"TimberBoxTexture--Lab3--GoldPanel--Shininess.png"
+		);
+			
+		Vector3f lanternPosition = new Vector3f(
+			lightingProperties.get("light.position").x,
+			lightingProperties.get("light.position").y,
+			lightingProperties.get("light.position").z
+		);
+		
+		model.put("lantern", new DrawableModel(
+			"Simple_Lantern.obj",
+			"Simple_Lantern--MagicLantern.png",
+			simpleObjRenderer,
+			lanternPosition,
+			new Vector3f(0,30f,0),
+			new Vector3f(0.3f,0.3f,0.3f)
+		));
 		
 		model.forEach((key,target) -> target.loadModelData());
 		model.forEach((key,target) -> target.setupVertices(vao,0));
 		
 		
 		//cameraX = 0.0f; cameraY = 0.0f; cameraZ = 12.0f;
-		mainCamera.setPosition(0,0,-12f);
+		mainCamera.setPosition(0,-5,-24f);
 		
 		
-		/*Preparing Lighting Properties
-		
-		private HashMap<String, Vector4f> lightingProperties = new HashMap<String, Vector4f>();
-		
-		
-		// white light properties
-		"globalAmbient" = new float[] { 
-			0.6f, 0.6f, 
-			0.6f, 1.0f 
-		};
-		"light.ambient" = new float[] { 
-			0.1f, 0.1f, 
-			0.1f, 1.0f 
-		};
-		"light.diffuse" = new float[] {
-			1.0f, 1.0f, 
-			1.0f, 1.0f 
-		};
-		"light.specular" = new float[] { 
-			1.0f, 1.0f, 
-			1.0f, 1.0f 
-		};
-		"light.position" = {
-			new Vector3f(5.0f, 2.0f, 2.0f);
-		}
-		*/
-		
-		lightingProperties.put("globalAmbient", new Vector4f(10f/255f, 12f/255f, 35f/255f, 1.0f));
-		
-		//lightingProperties.put("globalAmbient", new Vector4f(0.7f, 1f, 1f, 1.0f));
-		
-		lightingProperties.put("light.ambient", new Vector4f(0.1f, 0.1f, 0.1f, 1.0f));
-		
-		lightingProperties.put("light.diffuse", new Vector4f(0.5f, 0.5f, 0.5f, 1.0f));
-		
-		lightingProperties.put("light.specular", new Vector4f(0.7f, 0.6f, 0.8f, 1.0f));
-		
-		lightingProperties.put("light.position", new Vector4f(10.0f, 5f, 3.0f, 1.0f));
 	}
 
 	public static void main(String[] args) { new Code(); }

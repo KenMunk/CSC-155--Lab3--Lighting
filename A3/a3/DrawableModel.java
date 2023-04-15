@@ -169,6 +169,10 @@ public class DrawableModel{
 		
 	}
 	
+	public void setPosition(Vector3f position){
+		this.globalPosition = new Vector3f(position);
+	}
+	
 	public void translate(Vector3f move){
 		this.globalPosition.add(move);
 	}
@@ -218,10 +222,10 @@ public class DrawableModel{
 		String shininessMapPath
 	){
 		
-		this.addTexture(GL_TEXTURE0, ambientColorMapPath);
-		this.addTexture(GL_TEXTURE1, diffuseColorMapPath);
-		this.addTexture(GL_TEXTURE2, specularColorMapPath);
-		this.addTexture(GL_TEXTURE3, shininessMapPath);
+		this.addTexture(GL_TEXTURE1, ambientColorMapPath);
+		this.addTexture(GL_TEXTURE2, diffuseColorMapPath);
+		this.addTexture(GL_TEXTURE3, specularColorMapPath);
+		this.addTexture(GL_TEXTURE4, shininessMapPath);
 		
 	}
 	
@@ -277,6 +281,9 @@ public class DrawableModel{
 		
 		modelMatrix.invert(invTrMat);
 		//invTrMat.transpose(invTrMat);
+		invTrMat.invert();
+		//invTrMat.transpose(invTrMat);
+		invTrMat.invert();
 		
 		this.addOtherMatrix("norm_matrix", invTrMat);
 	}
