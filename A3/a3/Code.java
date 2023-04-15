@@ -615,6 +615,15 @@ public class Code extends JFrame implements GLEventListener
 			new Vector3f(0.3f,0.3f,0.3f)
 		));
 		
+		model.put("axis", new DrawableMesh(
+			"Axis.obj",
+			"Axis.png",
+			simpleObjRenderer,
+			new Vector3f(-10,5,-10),
+			new Vector3f(),
+			new Vector3f(1,1,1)
+		));
+		
 		model.forEach((key,target) -> target.loadModelData());
 		model.forEach((key,target) -> target.setupVertices(vao,0));
 		

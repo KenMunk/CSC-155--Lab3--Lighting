@@ -109,10 +109,10 @@ public class DrawableModel{
 		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		
-		numObjVertices = model.getNumVertices();
-		Vector3f[] vertices = model.getVertices();
-		Vector2f[] texCoords = model.getTexCoords();
-		Vector3f[] normals = model.getNormals();
+		numObjVertices = this.model.getNumVertices();
+		Vector3f[] vertices = this.model.getVertices();
+		Vector2f[] texCoords = this.model.getTexCoords();
+		Vector3f[] normals = this.model.getNormals();
 		//Need to get indicies
 		
 		float[] pvalues = new float[numObjVertices*3];
@@ -433,13 +433,19 @@ public class DrawableModel{
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 		
-		
+		this.draw();
 		
 		gl.glDrawArrays(GL_TRIANGLES, 0, model.getNumVertices());
 		
 		this.renderChildren(stackMat, perspectiveMat);
 		
 		stackMat.popMatrix();
+	}
+	
+	protected void draw(){
+		
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		gl.glDrawArrays(GL_TRIANGLES, 0, this.model.getNumVertices());
 	}
 	
 }
