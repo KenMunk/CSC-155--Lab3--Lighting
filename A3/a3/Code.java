@@ -616,6 +616,8 @@ public class Code extends JFrame implements GLEventListener
 			new Vector3f(0.3f,0.3f,0.3f)
 		));
 		
+		model.get("lantern").allowDrawInternals();
+		
 		model.put("axis", new DrawableMesh(
 			"Axis.obj",
 			"Axis.png",

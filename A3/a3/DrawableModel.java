@@ -449,7 +449,12 @@ public class DrawableModel{
 		
 		this.transparencyProcess();
 		
+		if(this.drawInternals){
+			this.renderInternals();
+		}
+		
 		this.draw();
+		
 		
 		gl.glDisable(GL_BLEND);
 		//gl.glDisable(GL_ALPHA_TEST);
@@ -463,7 +468,12 @@ public class DrawableModel{
 		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		
-		gl.glDisable(GL_CULL_FACE);
+		
+		gl.glFrontFace(GL_CW);
+		this.draw();
+		
+		
+		gl.glFrontFace(GL_CCW);
 	}
 	
 	protected void transparencyProcess(){
@@ -475,9 +485,6 @@ public class DrawableModel{
 		//glBlendFunc(srcFactor, destFactor)
 		gl.glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 		
-		if(this.drawInternals){
-			this.renderInternals();
-		}
 	}
 	
 	protected void draw(){
