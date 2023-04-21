@@ -42,6 +42,7 @@ public class DrawableModel{
 	*/
 	private HashMap<String, Matrix4fc> otherMatrices;
 	private HashMap<String, Vector4f> vector4Properties;
+	private boolean drawInternals = false;
 	
 	/*
 	Storing other textures in a hash map for the same reason
@@ -99,6 +100,14 @@ public class DrawableModel{
 		
 		this.model = new ImportedModel(modelPath);
 		
+	}
+	
+	public void allowDrawInternals(){
+		this.drawInternals = true;
+	}
+	
+	public void disableDrawInternals(){
+		this.drawInternals = false;
 	}
 	
 	public void setupVertices(){
@@ -248,6 +257,8 @@ public class DrawableModel{
 		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		gl.glBindTexture(GL_TEXTURE_2D, texture.getLocation());
 	}
+	
+	
 	
 	public void createModelMatrix(Matrix4fStack stackMat){
 		
@@ -433,13 +444,40 @@ public class DrawableModel{
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 		
+		//gl.glEnable(GL_ALPHA_TEST);
+		//gl.glAlphaFunc(GL_LESS, 1.0f);
+		
+		this.transparencyProcess();
+		
 		this.draw();
 		
-		gl.glDrawArrays(GL_TRIANGLES, 0, model.getNumVertices());
+		gl.glDisable(GL_BLEND);
+		//gl.glDisable(GL_ALPHA_TEST);
 		
 		this.renderChildren(stackMat, perspectiveMat);
 		
 		stackMat.popMatrix();
+	}
+	
+	protected void renderInternals(){
+		
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		
+		gl.glDisable(GL_CULL_FACE);
+	}
+	
+	protected void transparencyProcess(){
+		
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		gl.glEnable(GL_BLEND);
+		//glBlendEquation(mode)
+		
+		//glBlendFunc(srcFactor, destFactor)
+		gl.glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		
+		if(this.drawInternals){
+			this.renderInternals();
+		}
 	}
 	
 	protected void draw(){

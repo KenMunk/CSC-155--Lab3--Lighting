@@ -51,7 +51,7 @@ public class Code extends JFrame implements GLEventListener
 	
 	// allocate variables for display() function
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
-	private Matrix4fStack mStack = new Matrix4fStack(5);
+	private Matrix4fStack mStack = new Matrix4fStack(10);
 	private Matrix4f pMat = new Matrix4f();
 	private int mvLoc, pLoc;
 	private float aspect;
@@ -257,6 +257,7 @@ public class Code extends JFrame implements GLEventListener
         //gl.glEnable(GL_DEBUG_OUTPUT);
 		
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+		//gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		gl.glClear(GL_COLOR_BUFFER_BIT);
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		
@@ -607,8 +608,8 @@ public class Code extends JFrame implements GLEventListener
 		);
 		
 		model.put("lantern", new DrawableModel(
-			"Simple_Lantern.obj",
-			"Simple_Lantern--MagicLantern.png",
+			"Simple_Lantern--With_Internal_Faces.obj",
+			"Simple_Lantern--MagicLantern--Transparent.png",
 			simpleObjRenderer,
 			lanternPosition,
 			new Vector3f(0,30f,0),
