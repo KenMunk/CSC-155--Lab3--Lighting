@@ -618,14 +618,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		model.get("lantern").allowDrawInternals();
 		
-		model.put("axis", new DrawableMesh(
-			"Axis.obj",
-			"Axis.png",
-			simpleObjRenderer,
-			new Vector3f(-10,5,-10),
-			new Vector3f(),
-			new Vector3f(1,1,1)
-		));
+		
 		
 		model.forEach((key,target) -> target.loadModelData());
 		model.forEach((key,target) -> target.setupVertices(vao,0));
@@ -633,6 +626,14 @@ public class Code extends JFrame implements GLEventListener
 		
 		//cameraX = 0.0f; cameraY = 0.0f; cameraZ = 12.0f;
 		mainCamera.setPosition(0,-5,-24f);
+		
+		gl.getContext().enableGLDebugMessage(true);
+		
+		gl.glEnable(GL_DEBUG_OUTPUT);
+		
+		gl.getContext().setGLDebugSynchronous(true);
+		
+		gl.glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		
 		
 	}
