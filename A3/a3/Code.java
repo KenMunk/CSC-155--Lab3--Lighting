@@ -37,6 +37,8 @@ import org.joml.*;
 
 public class Code extends JFrame implements GLEventListener
 {	private GLCanvas myCanvas;
+	
+	
 	Instant snap;
 	long elapsedTime;
 	int frameCycle;
@@ -86,7 +88,11 @@ public class Code extends JFrame implements GLEventListener
 	public Code()
 	{	setTitle("Chapter 4 - program 4");
 		setSize(600, 600);
-		myCanvas = new GLCanvas();
+		
+		GLProfile glp = GLProfile.getMinimum(true);
+		GLCapabilities caps = new GLCapabilities(glp);
+		myCanvas = new GLCanvas(caps);
+		//myCanvas = new GLCanvas();
 		myCanvas.addGLEventListener(this);
 		this.add(myCanvas);
 		this.setVisible(true);
