@@ -455,22 +455,23 @@ public class Code extends JFrame implements GLEventListener
 		=============================================
 		*/
 		renderingProgram = Utils.createShaderProgram(
-			"a3/vertShader.glsl", 
-			"a3/fragShader.glsl"
+			"a3/shaders/WorldOrigin/vertShader.glsl",
+			"a3/shaders/WorldOrigin/fragShader.glsl"
 		);
 		
 		int simpleObjRenderer = Utils.createShaderProgram(
-			"a3/objVertShader.glsl", 
-			"a3/objFragShader.glsl"
+			"a3/shaders/Simple/objVertShader.glsl", 
+			"a3/shaders/Simple/objFragShader.glsl"
 		);
 		
 		int SkyCubeRenderer = Utils.createShaderProgram(
-			"a3/vertCShader.glsl", 
-			"a3/fragCShader.glsl"
+			"a3/shaders/SkyCube/vertCShader.glsl", 
+			"a3/shaders/SkyCube/fragCShader.glsl"
 		);
 		
 		int objPBRenderer = Utils.createShaderProgram(
-			"a3/obj_PBR_VertShader.glsl", "a3/obj_PBR_FragShader.glsl"
+			"a3/shaders/pbr/obj_PBR_VertShader.glsl",
+			"a3/shaders/pbr/obj_PBR_FragShader.glsl"
 		);
 		
 		spaceBox = new SkyCube("NebulaSky",SkyCubeRenderer);
