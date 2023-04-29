@@ -17,10 +17,12 @@ uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
 
+//Takes the texture coordinate from the vertex shader since the texture coordinate is from a VBO
+in vec3 vertEyeSpacePos;
+in vec2 tc;
+
 //End Reusable Section
 
-//Takes the texture coordinate from the vertex shader since the texture coordinate is from a VBO
-in vec2 tc;
 
 
 in vec3 varyingNormal;
@@ -40,6 +42,18 @@ layout (binding=4) uniform sampler2D shininessMap;
 
 void main(void)
 {
+	//Fog Works
+	vec4 fogColor = vec4(0.3, 0, 0.4, 0.0);	
+	
+	float fogStart = 200;
+	float fogEnd = 500;
+	
+	// the distance from the camera to the vertex in eye space is simply the length of a
+	// vector to that vertex, because the camera is at (0,0,0) in eye space.
+	float dist = length(vertEyeSpacePos.xyz);
+	float fogFactor = clamp(((fogEnd-dist)/(fogEnd-fogStart)), 0.0, 1.0);
+	//End Fog Works
+	
 	//color = texture(s,tc);
 	vec4 textureColor = texture(textureSample, tc);
 	
@@ -81,7 +95,9 @@ void main(void)
 	if(maxValue < 1){
 		maxValue = 1;
 	}
-	color = textureColor * vec4((adsRaw/maxValue), 1.0);
+	vec4 colorSample = textureColor * vec4((adsRaw/maxValue), 1.0);
+	
+	color = mix(fogColor,colorSample,fogFactor);
 	//color = vec4(ambient,1);
 	//color = light.diffuse;
 	//color = ambientColor;

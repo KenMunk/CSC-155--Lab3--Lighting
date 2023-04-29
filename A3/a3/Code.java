@@ -74,8 +74,8 @@ public class Code extends JFrame implements GLEventListener
 	private float camPitch = 0f; //up down
 	private float camRoll = 0f; //roll screen
 	
-	private AxisState fwdAxis = new AxisState(0.1f, KeyEvent.VK_S, KeyEvent.VK_W);
-	private AxisState sideAxis = new AxisState(0.1f, KeyEvent.VK_D, KeyEvent.VK_A);
+	private AxisState fwdAxis = new AxisState(0.2f, KeyEvent.VK_S, KeyEvent.VK_W);
+	private AxisState sideAxis = new AxisState(0.2f, KeyEvent.VK_D, KeyEvent.VK_A);
 	private AxisState verticalAxis = new AxisState(0.1f, KeyEvent.VK_Q, KeyEvent.VK_E);
 	private AxisState pitchTurnAxis = new AxisState(0.01f, KeyEvent.VK_UP, KeyEvent.VK_DOWN);
 	private AxisState yawTurnAxis = new AxisState(0.01f, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);

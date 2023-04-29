@@ -17,13 +17,15 @@ uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
 
+out vec3 vertEyeSpacePos;
+out vec2 tc;
+
 //End Reusable Section
 
 //Loading the vbo locations
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 tex_coord;
 layout (location = 2) in vec3 normal;
-out vec2 tc;
 
 out vec3 varyingNormal;
 out vec3 varyingLightDir;
@@ -60,6 +62,8 @@ void main(void)
 
 	gl_Position = p_matrix * v_matrix * m_matrix * vec4(position,1.0);
 	
+	
+	vertEyeSpacePos = (v_matrix * m_matrix * vec4(position,1.0)).xyz;
 	//*/
 	
 }
