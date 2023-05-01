@@ -122,11 +122,13 @@ public class DrawableModel{
 		Vector3f[] vertices = this.model.getVertices();
 		Vector2f[] texCoords = this.model.getTexCoords();
 		Vector3f[] normals = this.model.getNormals();
+		//Vector3f[] tangents = this.model.getTangents();
 		//Need to get indicies
 		
 		float[] pvalues = new float[numObjVertices*3];
 		float[] tvalues = new float[numObjVertices*2];
 		float[] nvalues = new float[numObjVertices*3];
+		float[] tanvalues = new float[indices.length*3];
 		
 		for (int i=0; i<numObjVertices; i++)
 		{	pvalues[i*3]   = (float) (vertices[i]).x();
@@ -137,6 +139,9 @@ public class DrawableModel{
 			nvalues[i*3]   = (float) (normals[i]).x();
 			nvalues[i*3+1] = (float) (normals[i]).y();
 			nvalues[i*3+2] = (float) (normals[i]).z();
+			tanvalues[i*3] = (float) (tangents[indices[i]]).x();
+			tanvalues[i*3+1] = (float) (tangents[indices[i]]).y();
+			tanvalues[i*3+2] = (float) (tangents[indices[i]]).z();
 		}
 		
 		gl.glGenVertexArrays(vao.length, vao, 0);
@@ -156,6 +161,9 @@ public class DrawableModel{
 		FloatBuffer normBuf = Buffers.newDirectFloatBuffer(nvalues);
 		gl.glBufferData(GL_ARRAY_BUFFER, texBuf.limit()*4, normBuf, GL_STATIC_DRAW);
 		
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+		FloatBuffer tanBuf = Buffers.newDirectFloatBuffer(tanvalues);
+		gl.glBufferData(GL_ARRAY_BUFFER, tanBuf.limit()*4, tanBuf, GL_STATIC_DRAW);
 	}
 	
 	public void addChild(DrawableModel newChild){
@@ -228,13 +236,15 @@ public class DrawableModel{
 		String ambientColorMapPath,
 		String diffuseColorMapPath,
 		String specularColorMapPath,
-		String shininessMapPath
+		String shininessMapPath,
+		String normalMapPath
 	){
 		
 		this.addTexture(GL_TEXTURE1, ambientColorMapPath);
 		this.addTexture(GL_TEXTURE2, diffuseColorMapPath);
 		this.addTexture(GL_TEXTURE3, specularColorMapPath);
 		this.addTexture(GL_TEXTURE4, shininessMapPath);
+		this.addTexture(GL_TEXTURE5, normalMapPath);
 		
 	}
 	

@@ -28,6 +28,7 @@ in vec2 tc;
 in vec3 varyingNormal;
 in vec3 varyingLightDir;
 in vec3 varyingVertPos;
+in vec3 varyingTangent;
 in vec3 varyingHalfVector;
 
 out vec4 color;
@@ -39,6 +40,22 @@ layout (binding=1) uniform sampler2D ambientColor;
 layout (binding=2) uniform sampler2D diffuseColor;
 layout (binding=3) uniform sampler2D specularColor;
 layout (binding=4) uniform sampler2D shininessMap;
+layout (binding=5) uniform sampler2D normMap;
+
+
+vec3 calcNewNormal()
+{
+	vec3 normal = normalize(varyingNormal);
+	vec3 tangent = normalize(varyingTangent);
+	tangent = normalize(tangent - dot(tangent, normal) * normal);
+	vec3 bitangent = cross(tangent, normal);
+	mat3 tbn = mat3(tangent, bitangent, normal);
+	vec3 retrievedNormal = texture(normMap,tc).xyz;
+	retrievedNormal = retrievedNormal * 2.0 - 1.0;
+	vec3 newNormal = tbn * retrievedNormal;
+	newNormal = normalize(newNormal);
+	return newNormal;
+}
 
 void main(void)
 {
@@ -68,7 +85,7 @@ void main(void)
 	// This is mostly because I like the output of the blinnPhong
 	// normalize the light, normal, and view vectors:
 	vec3 L = normalize(varyingLightDir);
-	vec3 N = normalize(varyingNormal);
+	vec3 N = calcNewNormal();
 	vec3 V = normalize(-v_matrix[3].xyz - varyingVertPos);
 	
 	// get the angle between the light and surface normal:
@@ -77,7 +94,7 @@ void main(void)
 	// halfway vector varyingHalfVector was computed in the vertex shader,
 	// and interpolated prior to reaching the fragment shader.
 	// It is copied into variable H here for convenience later.
-	vec3 H = normalize(varyingHalfVector);
+	vec3 H = normalize(reflect(-L,N));
 	
 	// get angle between the normal and the halfway vector
 	float cosPhi = dot(H,N);

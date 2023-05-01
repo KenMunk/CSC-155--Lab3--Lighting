@@ -26,10 +26,12 @@ out vec2 tc;
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 tex_coord;
 layout (location = 2) in vec3 normal;
+layout (location = 3) in vec3 vertTangent;
 
-out vec3 varyingNormal;
 out vec3 varyingLightDir;
 out vec3 varyingVertPos;
+out vec3 varyingNormal;
+out vec3 varyingTangent;
 out vec3 varyingHalfVector;
 
 
@@ -45,6 +47,7 @@ layout (binding=1) uniform sampler2D ambientColor;
 layout (binding=2) uniform sampler2D diffuseColor;
 layout (binding=3) uniform sampler2D specularColor;
 layout (binding=4) uniform sampler2D shininessMap;
+layout (binding=5) uniform sampler2D normMap;
 
 void main(void)
 {	
@@ -55,6 +58,8 @@ void main(void)
 	varyingVertPos = (m_matrix * vec4(position,1.0)).xyz;
 	varyingLightDir = light.position.xyz - varyingVertPos;
 	varyingNormal = (norm_matrix * vec4(normal,1.0)).xyz;
+	
+	varyingTangent = (norm_matrix * vec4(vertTangent, 1.0)).xyz;
 	
 	varyingHalfVector =
 		normalize(normalize(varyingLightDir)

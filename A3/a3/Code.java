@@ -541,7 +541,8 @@ public class Code extends JFrame implements GLEventListener
 			"Sign_on_wood_post--World404--Ambient.png",
 			"Sign_on_wood_post--World404--Diffuse.png",
 			"Sign_on_wood_post--World404--Specular.png",
-			"Sign_on_wood_post--World404--Shininess.png"
+			"Sign_on_wood_post--World404--Shininess.png",
+			"NormalDefault.png"
 		);
 		
 		model.put("coreIsland", new DrawableModel(
@@ -588,7 +589,8 @@ public class Code extends JFrame implements GLEventListener
 			"StreetLamp--High_Poly--basic--test.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--diffuse.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--specularpng.png",
-			"StreetLamp--High_Poly--TextureLabsMetals--shininessmap.png"
+			"StreetLamp--High_Poly--TextureLabsMetals--shininessmap.png",
+			"NormalDefault.png"
 		);
 		//*/
 		
@@ -605,7 +607,8 @@ public class Code extends JFrame implements GLEventListener
 			"TimberBoxTexture--Lab3--GoldPanel--WoodTrim--Ambient.png",
 			"TimberBoxTexture--Lab3--GoldPanel--Diffuse.png",
 			"TimberBoxTexture--Lab3--GoldPanel--Specular.png",
-			"TimberBoxTexture--Lab3--GoldPanel--Shininess.png"
+			"TimberBoxTexture--Lab3--GoldPanel--Shininess.png",
+			"NormalDefault.png"
 		);
 			
 		Vector3f lanternPosition = new Vector3f(
