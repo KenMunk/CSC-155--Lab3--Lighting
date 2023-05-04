@@ -28,7 +28,7 @@ public class DrawableModel{
 	protected ImportedModel model;
 	protected int numObjVertices;
 	
-	protected int vbo[] = new int[3];
+	protected int vbo[] = new int[4];
 	
 	protected int renderingProgram;
 	
@@ -122,13 +122,13 @@ public class DrawableModel{
 		Vector3f[] vertices = this.model.getVertices();
 		Vector2f[] texCoords = this.model.getTexCoords();
 		Vector3f[] normals = this.model.getNormals();
-		//Vector3f[] tangents = this.model.getTangents();
+		Vector3f[] tangents = this.model.getTangents();
 		//Need to get indicies
 		
 		float[] pvalues = new float[numObjVertices*3];
 		float[] tvalues = new float[numObjVertices*2];
 		float[] nvalues = new float[numObjVertices*3];
-		float[] tanvalues = new float[indices.length*3];
+		float[] tanvalues = new float[numObjVertices*3];
 		
 		for (int i=0; i<numObjVertices; i++)
 		{	pvalues[i*3]   = (float) (vertices[i]).x();
@@ -139,9 +139,9 @@ public class DrawableModel{
 			nvalues[i*3]   = (float) (normals[i]).x();
 			nvalues[i*3+1] = (float) (normals[i]).y();
 			nvalues[i*3+2] = (float) (normals[i]).z();
-			tanvalues[i*3] = (float) (tangents[indices[i]]).x();
-			tanvalues[i*3+1] = (float) (tangents[indices[i]]).y();
-			tanvalues[i*3+2] = (float) (tangents[indices[i]]).z();
+			tanvalues[i*3] = (float) (tangents[i]).x();
+			tanvalues[i*3+1] = (float) (tangents[i]).y();
+			tanvalues[i*3+2] = (float) (tangents[i]).z();
 		}
 		
 		gl.glGenVertexArrays(vao.length, vao, 0);
@@ -442,6 +442,11 @@ public class DrawableModel{
 		gl.glEnableVertexAttribArray(1);
 		
 		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(1);
+		
+		
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
 		gl.glVertexAttribPointer(2, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(1);
 		

@@ -17,6 +17,9 @@ uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
 
+uniform float fogStart;
+uniform float fogEnd;
+
 //Takes the texture coordinate from the vertex shader since the texture coordinate is from a VBO
 in vec3 vertEyeSpacePos;
 in vec2 tc;

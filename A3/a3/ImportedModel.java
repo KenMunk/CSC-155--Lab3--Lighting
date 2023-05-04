@@ -12,6 +12,7 @@ import org.joml.*;
 public class ImportedModel
 {
 	private Vector3f[] vertices;
+	private Vector3f[] tangents;
 	private Vector2f[] texCoords;
 	private Vector3f[] normals;
 	private int numVertices;
@@ -27,6 +28,7 @@ public class ImportedModel
 
 			vertices = new Vector3f[numVertices];
 			texCoords = new Vector2f[numVertices];
+			tangents = new Vector3f[numVertices];
 			normals = new Vector3f[numVertices];
 			
 			for(int i=0; i<vertices.length; i++)
@@ -37,6 +39,43 @@ public class ImportedModel
 				normals[i] = new Vector3f();
 				normals[i].set(norm[i*3], norm[i*3+1], norm[i*3+2]);
 			}
+			
+			//Calculating the face tangents
+			//See documentation for notes from ChatGPT and its sources on how this solution was arrived to
+			//Basically I needed something that would calculate the individual face tangents rather than
+			//The individual tangents unlike the sphere.java class in the examples
+			for(int i=0; i<tangents.length/3; i++){
+				
+				//First we get all of the position deltas
+				Vector3f[] deltaPos = 
+				{ 
+					new Vector3f(vertices[(i*3)+1]).sub(vertices[(i*3)]),
+					new Vector3f(vertices[(i*3)+2]).sub(vertices[(i*3)])
+				};					
+				
+				//Then we get the UV deltas
+				Vector2f[] deltaUV = 
+				{ 
+					new Vector2f(texCoords[(i*3)+1]).sub(texCoords[(i*3)]),
+					new Vector2f(texCoords[(i*3)+2]).sub(texCoords[(i*3)])
+				};
+				
+				//This was originally labeled as r but it makes more sense to have the variable named scalar
+				float scalar = 1.0f / (deltaUV[0].x * deltaUV[1].y - deltaUV[0].y * deltaUV[1].x);
+				
+				//Then we get the cross product of each vector and then scale it
+				Vector3f tangent = new Vector3f(
+					deltaPos[0].y * deltaUV[1].y - deltaPos[1].y * deltaUV[0].y,
+					deltaPos[0].x * deltaUV[1].y - deltaPos[1].x * deltaUV[0].y,
+					deltaPos[0].z * deltaUV[1].y - deltaPos[1].z * deltaUV[0].y
+				).mul(scalar);
+				
+				//then we cast the tangents to their vertex related tangent
+				tangents[i*3] = tangent;
+				tangents[(i*3)+1] = tangent;
+				tangents[(i*3)+2] = tangent;
+			}
+			
 		} catch (IOException e)
 		{ e.printStackTrace();
 	}	}
@@ -45,6 +84,7 @@ public class ImportedModel
 	public Vector3f[] getVertices() { return vertices; }
 	public Vector2f[] getTexCoords() { return texCoords; }	
 	public Vector3f[] getNormals() { return normals; }	
+	public Vector3f[] getTangents() { return tangents; }
 
 	private class ModelImporter
 	{	// values as read from OBJ file
