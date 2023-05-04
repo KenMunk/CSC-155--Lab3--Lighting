@@ -79,6 +79,7 @@ public class Code extends JFrame implements GLEventListener
 	private AxisState verticalAxis = new AxisState(0.1f, KeyEvent.VK_Q, KeyEvent.VK_E);
 	private AxisState pitchTurnAxis = new AxisState(0.01f, KeyEvent.VK_UP, KeyEvent.VK_DOWN);
 	private AxisState yawTurnAxis = new AxisState(0.01f, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT);
+	private AxisState spaceBar = new AxisState(1f, KeyEvent.VK_SPACE, KeyEvent.VK_BACK_SPACE);
 	boolean showAxis = true;
 	
 	boolean clickPress = false;
@@ -111,6 +112,7 @@ public class Code extends JFrame implements GLEventListener
 				fwdAxis.pressCheck(e.getKeyCode());
 				sideAxis.pressCheck(e.getKeyCode());
 				verticalAxis.pressCheck(e.getKeyCode());
+				spaceBar.pressCheck(e.getKeyCode());
 				
 				
 			}
@@ -123,6 +125,7 @@ public class Code extends JFrame implements GLEventListener
 				fwdAxis.releaseCheck(e.getKeyCode());
 				sideAxis.releaseCheck(e.getKeyCode());
 				verticalAxis.releaseCheck(e.getKeyCode());
+				spaceBar.releaseCheck(e.getKeyCode());
 				
 				if(e.getKeyCode() == KeyEvent.VK_SPACE){
 					showAxis = !showAxis;
@@ -316,7 +319,7 @@ public class Code extends JFrame implements GLEventListener
 			lightTimer%=61;
 		}
 		
-		Matrix4f lanternMat = new Matrix4f(mainCamera.returnMatrix());
+		Matrix4f lanternMat = new Matrix4f( mainCamera.returnMatrix());
 		
 		//This is where the mouse clicks will take me
 		lanternMat.translateLocal(lanternLocation);
@@ -339,12 +342,14 @@ public class Code extends JFrame implements GLEventListener
 		///////////////////////////////////////////////////////////////////////////////////////////////
 		
 		//skybox
+		/*
 		Matrix4fStack spaceBoxMat = new Matrix4fStack(5);
 		
 		spaceBoxMat.set(mStack);
 		spaceBoxMat.mul(mainCamera.returnMatrix());
 		
 		spaceBox.render(spaceBoxMat,pMat);
+		//*/
 		
 		//System.out.println("skybox done");
 		//Skybox end
@@ -377,6 +382,13 @@ public class Code extends JFrame implements GLEventListener
 		
 		model.forEach((key,target) -> target.addMultipleVectorProperties(lightingProperties));
 		model.forEach((key,target) -> target.render(mStack,pMat));
+		
+		if(spaceBar.getValue() != 0){
+			System.out.println("mStack is: " + mStack);
+			System.out.println("pMat is: " + pMat);
+			System.out.println("Lantern mat is: " + lanternMat);
+			System.out.println("Camera Mat is: " + mainCamera.returnMatrix());
+		}
 		
 		//System.out.println("objects rendered");
 		
@@ -528,22 +540,6 @@ public class Code extends JFrame implements GLEventListener
 			new Vector3f(6f,0f,6f)
 		));
 		
-		model.put("sign", new DrawableModel(
-			"Sign_on_wood_post.obj",
-			"World404Sign.png",
-			objPBRenderer,
-			new Vector3f(-10f,-1f,0f),
-			new Vector3f(0f,0f,0f),
-			new Vector3f(1f,1f,1f)
-		));
-		
-		model.get("sign").addADSSTextures(
-			"Sign_on_wood_post--World404--Ambient.png",
-			"Sign_on_wood_post--World404--Diffuse.png",
-			"Sign_on_wood_post--World404--Specular.png",
-			"Sign_on_wood_post--World404--Shininess.png",
-			"NormalDefault.png"
-		);
 		
 		model.put("coreIsland", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
@@ -574,7 +570,24 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Simple_Street_Light--High_Poly.obj
 		//StreetLamp--High_Poly--TextureLabsMetals.png
-		//*
+		/*
+		
+		model.put("sign", new DrawableModel(
+			"Sign_on_wood_post.obj",
+			"World404Sign.png",
+			objPBRenderer,
+			new Vector3f(-10f,-1f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(1f,1f,1f)
+		));
+		
+		model.get("sign").addADSSTextures(
+			"Sign_on_wood_post--World404--Ambient.png",
+			"Sign_on_wood_post--World404--Diffuse.png",
+			"Sign_on_wood_post--World404--Specular.png",
+			"Sign_on_wood_post--World404--Shininess.png",
+			"NormalDefault.png"
+		);
 		
 		model.put("streetLamp", new DrawableModel(
 			"Simple_Street_Light--High_Poly.obj",
@@ -592,7 +605,6 @@ public class Code extends JFrame implements GLEventListener
 			"StreetLamp--High_Poly--TextureLabsMetals--shininessmap.png",
 			"NormalDefault.png"
 		);
-		//*/
 		
 		model.put("OldGoldBox", new DrawableModel(
 			"TimberCrate--Complete--Default.obj",
@@ -611,6 +623,8 @@ public class Code extends JFrame implements GLEventListener
 			"NormalDefault.png"
 		);
 			
+		//*/
+		
 		Vector3f lanternPosition = new Vector3f(
 			lightingProperties.get("light.position").x,
 			lightingProperties.get("light.position").y,

@@ -2,6 +2,7 @@ package a3;
 
 import java.nio.*;
 import java.io.*;
+import java.lang.*;
 import java.lang.Math;
 import java.time.Instant;
 import java.time.Duration;
@@ -63,7 +64,15 @@ public class Camera{
 	
 	*/
 	public void localTranslations(Vector3f increment){
+		
+		Matrix4f snapshotTransform = new Matrix4f(this.transformation);
+		
 		this.transformation.translateLocal(increment);
+		
+		if((""+this.transformation).contains("NaN")){
+			System.out.println("Camera matrix corrupt after transformation, ignoring transform");
+			this.transformation = new Matrix4f(snapshotTransform);
+		}
 	}
 	
 	
@@ -94,7 +103,22 @@ public class Camera{
 	public void localRotateThenTranslate(Vector3f increment, Vector3f rotationsXYZ){
 		
 		this.localRotation(rotationsXYZ);
+		
+		//https://www.geeksforgeeks.org/searching-for-characters-and-substring-in-a-string-in-java/
+		if((""+this.transformation).contains("NaN")){
+			System.out.println("Camera matrix corrupt after rotation");
+			
+			//https://stackoverflow.com/questions/2670956/how-to-quit-a-java-app-from-within-the-program
+			System.exit(0);
+		}
+		
 		this.localTranslations(increment);
+		
+		//https://www.geeksforgeeks.org/searching-for-characters-and-substring-in-a-string-in-java/
+		if((""+this.transformation).contains("NaN")){
+			System.out.println("Camera matrix corrupt after transformation");
+			System.exit(0);
+		}
 		
 	}
 	
