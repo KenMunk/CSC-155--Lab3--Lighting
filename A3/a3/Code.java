@@ -374,7 +374,9 @@ public class Code extends JFrame implements GLEventListener
 		model.get("caltrop2").rotate(new Vector3f(0,0.005f/frames,0));
 		model.get("caltrop2").setScale(new Vector3f((float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f));
 		
+		/*
 		model.get("anvil").translate(new Vector3f(0f,0.05f*((float)frameCycle-30)/30f,0f));
+		//*/
 		
 		//Using the lambda function iteration approach
 		//https://www.geeksforgeeks.org/how-to-iterate-hashmap-in-java/#
@@ -518,6 +520,51 @@ public class Code extends JFrame implements GLEventListener
 			new Vector3f(2f,2f,2f)
 		));
 		
+		model.put("Island2", new DrawableModel(
+			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
+			simpleObjRenderer,
+			new Vector3f(-50f,-0.6f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(2f,2f,2f)
+		));
+		
+		model.put("Island3", new DrawableModel(
+			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
+			simpleObjRenderer,
+			new Vector3f(-100f,-0.6f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(2f,2f,2f)
+		));
+		
+		model.put("Island4", new DrawableModel(
+			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
+			simpleObjRenderer,
+			new Vector3f(-150f,-0.6f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(2f,2f,2f)
+		));
+		
+		model.put("Island5", new DrawableModel(
+			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
+			simpleObjRenderer,
+			new Vector3f(-200f,-0.6f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(2f,2f,2f)
+		));
+		
+		model.put("Island6", new DrawableModel(
+			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
+			simpleObjRenderer,
+			new Vector3f(-250f,-0.6f,0f),
+			new Vector3f(0f,0f,0f),
+			new Vector3f(2f,2f,2f)
+		));
+		
 		model.put("woodCrate", new DrawableModel(
 			"TimberCrate--Complete--Default.obj",
 			"TimberBoxTexture--Lab3.png",
@@ -554,7 +601,7 @@ public class Code extends JFrame implements GLEventListener
 			"Sign_on_wood_post--World404--Diffuse.png",
 			"Sign_on_wood_post--World404--Specular.png",
 			"Sign_on_wood_post--World404--Shininess.png",
-			"NormalDefault.png"
+			"castleroofNORMAL.jpg"
 		);
 		
 		model.put("streetLamp", new DrawableModel(
