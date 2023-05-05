@@ -119,7 +119,12 @@ void main(void)
 	
 	vec3 r = -reflect(normalize(-vVertPos), N);
 	
-	vec3 reflectionColor = (texture(environmentMap,r)).xyz *  textureColor.xyz * shininessLevel.x;
+	vec3 reflectionFilter = (textureColor.xyz+specularColor.xyz);
+	float maxFilter = max(max(reflectionFilter.x, reflectionFilter.y), reflectionFilter.z);
+	if(maxFilter < 1){
+		maxFilter = 1;
+	}
+	vec3 reflectionColor = ((texture(environmentMap,r)).xyz) *  (reflectionFilter/maxFilter) * shininessLevel.x;
 	
 	vec3 adsRaw = (ambient + diffuse + specular);
 	float maxValue =  max(max(adsRaw.x, adsRaw.y), adsRaw.z);
