@@ -44,6 +44,10 @@ public class DrawableModel{
 	private HashMap<String, Vector4f> vector4Properties;
 	private boolean drawInternals = false;
 	
+	private boolean fog = true;
+	private float fogStart;
+	private float fogEnd;
+	
 	/*
 	Storing other textures in a hash map for the same reason
 	*/
@@ -64,6 +68,9 @@ public class DrawableModel{
 		this.vector4Properties = new HashMap<String, Vector4f>();
 		
 		this.addTexture(GL_TEXTURE0, primaryTexturePath);
+		
+		this.fogStart = 50f;
+		this.fogEnd = 100f;
 	}
 	
 	
@@ -93,6 +100,9 @@ public class DrawableModel{
 		this.translate(position);
 		this.rotate(rotation);
 		this.setScale(scale);
+		
+		this.fogStart = 100f;
+		this.fogEnd = 300f;
 	}
 	
 	
@@ -360,34 +370,55 @@ public class DrawableModel{
 		);
 	}
 	
+	public void fogEnabled(boolean state){
+		this.fog = state;
+	}
+	
+	public void bindFog(){
+		
+		if(fog){
+			GL4 gl = (GL4) GLContext.getCurrentGL();
+		
+			int nearFog = gl.glGetUniformLocation(
+				this.renderingProgram, 
+				"fogStart"
+			);
+			gl.glProgramUniform1f(
+				this.renderingProgram,
+				nearFog, 
+				this.fogStart
+			);
+			
+			int farFog = gl.glGetUniformLocation(
+				this.renderingProgram, 
+				"fogEnd"
+			);
+			gl.glProgramUniform1f(
+				this.renderingProgram,
+				farFog, 
+				this.fogEnd
+			);
+		}
+		
+	}
+	
 	protected void bindProperty(String propRef, Vector4f propertyValue){
 		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		
 		FloatBuffer vals = Buffers.newDirectFloatBuffer(4);
 		
-		//float[] testValues = new float[]{propertyValue.x,propertyValue.y,propertyValue.z,propertyValue.w};
-		//System.out.println(propRef + " = ");
-		float[] lightAmbient = new float[] { 0.1f, 0.1f, 0.1f, 1.0f };
 		
 		int propLoc = gl.glGetUniformLocation(
 			this.renderingProgram, 
 			propRef
 		);
-		//*
 		gl.glProgramUniform4fv(
 			this.renderingProgram,
 			propLoc, 
 			1, 
 			propertyValue.get(vals)
-		);/*/
-		gl.glProgramUniform4fv(
-			this.renderingProgram,
-			propLoc, 
-			1, 
-			lightAmbient,
-			0
-		);//*/
+		);
 	}
 	
 	/*Refactoring to support shaders with different configs
@@ -462,11 +493,15 @@ public class DrawableModel{
 		//gl.glEnable(GL_ALPHA_TEST);
 		//gl.glAlphaFunc(GL_LESS, 1.0f);
 		
+		
+		this.bindFog();
+		
 		this.transparencyProcess();
 		
 		if(this.drawInternals){
 			this.renderInternals();
 		}
+		
 		
 		this.draw();
 		

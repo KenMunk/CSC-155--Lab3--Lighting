@@ -342,7 +342,7 @@ public class Code extends JFrame implements GLEventListener
 		///////////////////////////////////////////////////////////////////////////////////////////////
 		
 		//skybox
-		/*
+		//*
 		Matrix4fStack spaceBoxMat = new Matrix4fStack(5);
 		
 		spaceBoxMat.set(mStack);
@@ -407,41 +407,9 @@ public class Code extends JFrame implements GLEventListener
 		//Camera Prep Stuff
 		
 		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
-		//gl.glViewport(0,0,myCanvas.getWidth(),myCanvas.getHeight());
-		
-		//viewMatrix.identity();
 		
 		snap = Instant.now();
 		frameCycle = 0;
-		
-		/*Preparing Lighting Properties
-		
-		private HashMap<String, Vector4f> lightingProperties = new HashMap<String, Vector4f>();
-		
-		
-		// white light properties
-		"globalAmbient" = new float[] { 
-			0.6f, 0.6f, 
-			0.6f, 1.0f 
-		};
-		"light.ambient" = new float[] { 
-			0.1f, 0.1f, 
-			0.1f, 1.0f 
-		};
-		"light.diffuse" = new float[] {
-			1.0f, 1.0f, 
-			1.0f, 1.0f 
-		};
-		"light.specular" = new float[] { 
-			1.0f, 1.0f, 
-			1.0f, 1.0f 
-		};
-		"light.position" = {
-			new Vector3f(5.0f, 2.0f, 2.0f);
-		}
-		*/
-		
-		//lightingProperties.put("globalAmbient", new Vector4f(10f/255f, 12f/255f, 35f/255f, 1.0f));
 		
 		lightingProperties.put("globalAmbient", new Vector4f(0.5f, 0.3f, 0.6f, 1.0f));
 		
@@ -570,7 +538,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Simple_Street_Light--High_Poly.obj
 		//StreetLamp--High_Poly--TextureLabsMetals.png
-		/*
+		//*
 		
 		model.put("sign", new DrawableModel(
 			"Sign_on_wood_post.obj",
