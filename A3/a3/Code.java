@@ -601,7 +601,8 @@ public class Code extends JFrame implements GLEventListener
 			"Sign_on_wood_post--World404--Diffuse.png",
 			"Sign_on_wood_post--World404--Specular.png",
 			"Sign_on_wood_post--World404--Shininess.png",
-			"castleroofNORMAL.jpg"
+			"castleroofNORMAL.jpg",
+			"NebulaSky"
 		);
 		
 		model.put("streetLamp", new DrawableModel(
@@ -618,7 +619,8 @@ public class Code extends JFrame implements GLEventListener
 			"StreetLamp--High_Poly--TextureLabsMetals--diffuse.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--specularpng.png",
 			"StreetLamp--High_Poly--TextureLabsMetals--shininessmap.png",
-			"NormalDefault.png"
+			"NormalDefault.png",
+			"NebulaSky"
 		);
 		
 		model.put("OldGoldBox", new DrawableModel(
@@ -635,7 +637,8 @@ public class Code extends JFrame implements GLEventListener
 			"TimberBoxTexture--Lab3--GoldPanel--Diffuse.png",
 			"TimberBoxTexture--Lab3--GoldPanel--Specular.png",
 			"TimberBoxTexture--Lab3--GoldPanel--Shininess.png",
-			"NormalDefault.png"
+			"NormalDefault.png",
+			"NebulaSky"
 		);
 			
 		//*/

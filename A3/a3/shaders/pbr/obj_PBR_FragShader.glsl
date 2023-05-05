@@ -34,6 +34,9 @@ in vec3 varyingVertPos;
 in vec3 varyingTangent;
 in vec3 varyingHalfVector;
 
+in vec3 vNormal;
+in vec3 vVertPos;
+
 out vec4 color;
 
 //the material struct has been removed and replaced with 4 textures
@@ -44,6 +47,7 @@ layout (binding=2) uniform sampler2D diffuseColor;
 layout (binding=3) uniform sampler2D specularColor;
 layout (binding=4) uniform sampler2D shininessMap;
 layout (binding=5) uniform sampler2D normMap;
+layout (binding=6) uniform samplerCube environmentMap;
 
 
 vec3 calcNewNormal()
@@ -67,6 +71,7 @@ void main(void)
 	
 	float fogStart = 200;
 	float fogEnd = 500;
+	
 	
 	// the distance from the camera to the vertex in eye space is simply the length of a
 	// vector to that vertex, because the camera is at (0,0,0) in eye space.
@@ -110,12 +115,20 @@ void main(void)
 	vec3 diffuse = light.diffuse.xyz * diffuseColor.xyz * max(cosTheta,0.0);
 	vec3 specular = light.specular.xyz * specularColor.xyz * pow(max(cosPhi,0.0), shininessLevel.x*3.0);
 	
+	//Taking the environment reflection and then filtering it based off the material
+	
+	vec3 r = -reflect(normalize(-vVertPos), N);
+	
+	vec3 reflectionColor = (texture(environmentMap,r)).xyz *  textureColor.xyz * shininessLevel.x;
+	
 	vec3 adsRaw = (ambient + diffuse + specular);
 	float maxValue =  max(max(adsRaw.x, adsRaw.y), adsRaw.z);
 	if(maxValue < 1){
 		maxValue = 1;
 	}
-	vec4 colorSample = textureColor * vec4((adsRaw/maxValue), 1.0);
+	
+	
+	vec4 colorSample = (textureColor * vec4((adsRaw), 1.0))+vec4(reflectionColor, 1.0);
 	
 	color = mix(fogColor,colorSample,fogFactor);
 	//color = vec4(ambient,1);

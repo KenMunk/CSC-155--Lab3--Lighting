@@ -52,6 +52,7 @@ public class DrawableModel{
 	Storing other textures in a hash map for the same reason
 	*/
 	private HashMap<Integer, TextureBinding> textures; 
+	private TextureBinding skyboxTexture;
 	
 	public DrawableModel(String modelPath, String primaryTexturePath, int renderingProgram){
 		
@@ -247,7 +248,8 @@ public class DrawableModel{
 		String diffuseColorMapPath,
 		String specularColorMapPath,
 		String shininessMapPath,
-		String normalMapPath
+		String normalMapPath,
+		String environmentMapPath
 	){
 		
 		this.addTexture(GL_TEXTURE1, ambientColorMapPath);
@@ -255,6 +257,7 @@ public class DrawableModel{
 		this.addTexture(GL_TEXTURE3, specularColorMapPath);
 		this.addTexture(GL_TEXTURE4, shininessMapPath);
 		this.addTexture(GL_TEXTURE5, normalMapPath);
+		this.textures.put(GL_TEXTURE6, new CubeMapBinding(environmentMapPath));
 		
 	}
 	
@@ -274,8 +277,10 @@ public class DrawableModel{
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		
 		gl.glActiveTexture(textureUnit);
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		gl.glBindTexture(GL_TEXTURE_2D, texture.getLocation());
+		if(texture.getTextureType() == GL_TEXTURE_2D){
+			gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		}
+		gl.glBindTexture(texture.getTextureType(), texture.getLocation());
 	}
 	
 	

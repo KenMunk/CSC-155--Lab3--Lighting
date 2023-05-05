@@ -15,8 +15,9 @@ import org.joml.*;
 
 public class TextureBinding{
 	
-	private String texturePath;
-	private int memoryLocation;
+	protected String texturePath;
+	protected int memoryLocation;
+	protected int textureType;
 
 	public TextureBinding(String texturePath){
 		this.setTexture(texturePath);
@@ -25,6 +26,7 @@ public class TextureBinding{
 	public void setTexture(String texturePath){
 		this.texturePath = texturePath;
 		this.memoryLocation = Utils.loadTexture(texturePath);
+		this.textureType = GL_TEXTURE_2D;
 	}
 	
 	public int getLocation(){
@@ -34,5 +36,10 @@ public class TextureBinding{
 	
 	public String getPath(){
 		return(""+this.texturePath);
+	}
+	
+	public int getTextureType(){
+		int tempTexType = this.textureType;
+		return(tempTexType);
 	}
 }

@@ -37,6 +37,9 @@ out vec3 varyingNormal;
 out vec3 varyingTangent;
 out vec3 varyingHalfVector;
 
+out vec3 vNormal;
+out vec3 vVertPos;
+
 
 /*//
 Instead of hard-coding the material properties, the material properties will be
@@ -51,12 +54,16 @@ layout (binding=2) uniform sampler2D diffuseColor;
 layout (binding=3) uniform sampler2D specularColor;
 layout (binding=4) uniform sampler2D shininessMap;
 layout (binding=5) uniform sampler2D normMap;
+layout (binding=6) uniform samplerCube environmentMap;
 
 void main(void)
 {	
 	tc = tex_coord;
 	
 	//*
+	
+	vVertPos = (m_matrix * v_matrix * vec4(position,1.0)).xyz;
+	vNormal = (norm_matrix * vec4(normal,1.0)).xyz;
 	
 	varyingVertPos = (m_matrix * vec4(position,1.0)).xyz;
 	varyingLightDir = light.position.xyz - varyingVertPos;
