@@ -48,13 +48,20 @@ public class DrawableModel{
 	private float fogStart;
 	private float fogEnd;
 	
+	private boolean castShadows = false;
+	
+	// shadow stuff (From CSC155 Program 8-2
+	private Matrix4f shadowMVP1 = new Matrix4f();
+	private Matrix4f shadowMVP2 = new Matrix4f();
+	
 	/*
 	Storing other textures in a hash map for the same reason
 	*/
 	private HashMap<Integer, TextureBinding> textures; 
 	private TextureBinding skyboxTexture;
 	
-	public DrawableModel(String modelPath, String primaryTexturePath, int renderingProgram){
+	public DrawableModel(String modelPath, String primaryTexturePath, int renderingProgram,
+		int shadowRenderingProgram){
 		
 		this.modelPath = modelPath;
 		
@@ -79,6 +86,7 @@ public class DrawableModel{
 		String modelPath, 
 		String primaryTexturePath, 
 		int renderingProgram,
+		int shadowRenderingProgram,
 		Vector3f position,
 		Vector3f rotation,
 		Vector3f scale
@@ -379,6 +387,10 @@ public class DrawableModel{
 		this.fog = state;
 	}
 	
+	public void shadowCastingEnabled(boolean state){
+		this.shadowCastingEnabled = state;
+	}
+	
 	public void bindFog(){
 		
 		if(fog){
@@ -424,6 +436,27 @@ public class DrawableModel{
 			1, 
 			propertyValue.get(vals)
 		);
+	}
+	
+	public void renderShadows(Matrix4fStack stackMat, Matrix4f lightViewMat, Matrix4f perspectiveMat){
+		
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+		
+		this.draw();
+		
+		this.renderChildren(stackMat, perspectiveMat);
+		
+		stackMat.popMatrix();
 	}
 	
 	/*Refactoring to support shaders with different configs

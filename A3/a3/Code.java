@@ -50,7 +50,6 @@ public class Code extends JFrame implements GLEventListener
 	private int vao[] = new int[1];
 	private int vbo[] = new int[2];
 	
-	
 	// allocate variables for display() function
 	private FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 	private Matrix4fStack mStack = new Matrix4fStack(10);
@@ -85,6 +84,14 @@ public class Code extends JFrame implements GLEventListener
 	boolean clickPress = false;
 	Vector3f lanternLocation = new Vector3f(2,0,10);
 	
+	//Shadow stuff
+	
+	private int scSizeX, scSizeY;
+	private int [] shadowTex = new int[1];
+	private int [] shadowBuffer = new int[1];
+	private Matrix4f lightVmat = new Matrix4f();
+	private Matrix4f lightPmat = new Matrix4f();
+	private Matrix4f b = new Matrix4f();
 
 	public Code()
 	{	setTitle("Chapter 4 - program 4");
@@ -257,6 +264,40 @@ public class Code extends JFrame implements GLEventListener
 		}
 	}
 	
+	private void animationFrame(){
+		
+		//System.out.println("skybox done");
+		//Skybox end
+		
+		tf = 5f;  // time factor
+		
+		/*Broken Axis (Need to bring back code for this or break the axis into another class)
+		if(showAxis){
+			
+			mStack.translate(10f,0f,0f);
+			gl.glUniformMatrix4fv(mvLoc,1,false,mStack.get(vals));
+			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+			gl.glVertexAttribPointer(0,3,GL_FLOAT,false, 0,0);
+			gl.glEnableVertexAttribArray(0);
+			gl.glDrawArrays(GL_LINES, 0, 6);
+		}
+		//*/
+		
+		model.get("caltrop1").rotate(new Vector3f(0,0.005f*frames,0));
+		model.get("caltrop1").setScale(new Vector3f((float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f));
+		
+		model.get("caltrop2").rotate(new Vector3f(0,0.005f/frames,0));
+		model.get("caltrop2").setScale(new Vector3f((float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f));
+		
+		/*
+		model.get("anvil").translate(new Vector3f(0f,0.05f*((float)frameCycle-30)/30f,0f));
+		//*/
+		
+		//Using the lambda function iteration approach
+		//https://www.geeksforgeeks.org/how-to-iterate-hashmap-in-java/#
+		
+	}
+	
 	public void render(){
 		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
@@ -350,40 +391,43 @@ public class Code extends JFrame implements GLEventListener
 		
 		spaceBox.render(spaceBoxMat,pMat);
 		//*/
-		
-		//System.out.println("skybox done");
-		//Skybox end
-		
-		tf = 5f;  // time factor
-		
-		/*Broken Axis (Need to bring back code for this or break the axis into another class)
-		if(showAxis){
-			
-			mStack.translate(10f,0f,0f);
-			gl.glUniformMatrix4fv(mvLoc,1,false,mStack.get(vals));
-			gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-			gl.glVertexAttribPointer(0,3,GL_FLOAT,false, 0,0);
-			gl.glEnableVertexAttribArray(0);
-			gl.glDrawArrays(GL_LINES, 0, 6);
-		}
-		//*/
-		
-		model.get("caltrop1").rotate(new Vector3f(0,0.005f*frames,0));
-		model.get("caltrop1").setScale(new Vector3f((float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f));
-		
-		model.get("caltrop2").rotate(new Vector3f(0,0.005f/frames,0));
-		model.get("caltrop2").setScale(new Vector3f((float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f,(float)Math.sin(((frameCycle-30)/15f)+0.1f)*0.5f));
-		
-		/*
-		model.get("anvil").translate(new Vector3f(0f,0.05f*((float)frameCycle-30)/30f,0f));
-		//*/
-		
-		//Using the lambda function iteration approach
-		//https://www.geeksforgeeks.org/how-to-iterate-hashmap-in-java/#
-		
+		this.animationFrame();
 		
 		model.forEach((key,target) -> target.addMultipleVectorProperties(lightingProperties));
+		
+		
+		
+		
+		//Shadow pass ( pass 1 )
+		
+		setupShadowBuffers();
+		
+		lightVmat.identity().setLookAt(currentLightPos, origin, up);	// vector from light to origin
+		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+		
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
+		gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
+		
+		gl.glDrawBuffer(GL_NONE);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glEnable(GL_POLYGON_OFFSET_FILL);	//  for reducing
+		gl.glPolygonOffset(3.0f, 5.0f);		//  shadow artifacts
+		
+		//Draw the shadows of each object 
+		model.forEach((key,target) -> target.renderShadows(mStack,lightPmat));
+		
+		gl.glDisable(GL_POLYGON_OFFSET_FILL);	// artifact reduction, continued
+		
+		/* Bind the shadow texture to all shaders 
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		gl.glActiveTexture(GL_TEXTURE0);
+		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
+		*/
+		
+		//Rendering pass 2
 		model.forEach((key,target) -> target.render(mStack,pMat));
+		
+		/*
 		
 		if(spaceBar.getValue() != 0){
 			System.out.println("mStack is: " + mStack);
@@ -678,6 +722,33 @@ public class Code extends JFrame implements GLEventListener
 		gl.glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		
 		
+		b.set(
+			0.5f, 0.0f, 0.0f, 0.0f,
+			0.0f, 0.5f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.5f, 0.0f,
+			0.5f, 0.5f, 0.5f, 1.0f);
+	}
+
+	
+	private void setupShadowBuffers()
+	{	GL4 gl = (GL4) GLContext.getCurrentGL();
+		scSizeX = myCanvas.getWidth();
+		scSizeY = myCanvas.getHeight();
+	
+		gl.glGenFramebuffers(1, shadowBuffer, 0);
+	
+		gl.glGenTextures(1, shadowTex, 0);
+		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32,
+						scSizeX, scSizeY, 0, GL_DEPTH_COMPONENT, GL_FLOAT, null);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+		
+		// may reduce shadow border artifacts
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	public static void main(String[] args) { new Code(); }

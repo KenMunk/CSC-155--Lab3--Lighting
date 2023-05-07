@@ -16,6 +16,7 @@ uniform mat4 m_matrix;
 uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
+uniform mat4 shadowMVP;
 
 uniform float fogStart;
 uniform float fogEnd;
@@ -36,6 +37,7 @@ out vec3 varyingVertPos;
 out vec3 varyingNormal;
 out vec3 varyingTangent;
 out vec3 varyingHalfVector;
+out vec4 shadow_coord;
 
 out vec3 vNormal;
 out vec3 vVertPos;
