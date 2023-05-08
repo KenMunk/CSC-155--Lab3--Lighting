@@ -367,15 +367,16 @@ public class Code extends JFrame implements GLEventListener
 		
 		//This is where the mouse clicks will take me
 		lanternMat.translateLocal(lanternLocation);
-		lanternMat.invert();
+		//lanternMat.invert();
 		Vector3f lanternPosition = new Vector3f();
 		lanternMat.getTranslation(lanternPosition);
+		lanternMat.invert();
 		
-		lightingProperties.put("light.position", new Vector4f(lanternPosition, 
+		lightingProperties.put("light.position", new Vector4f(new Vector3f(lanternPosition.x*(-1),lanternPosition.y*(-1), lanternPosition.z*(-1)), 
 			1.0f
 		));
 		
-		model.get("lantern").setPosition(lanternPosition);
+		model.get("lantern").setPosition(new Vector3f(lanternPosition.x*(1),lanternPosition.y*(1), lanternPosition.z*(1)));
 		
 		//Remove when implementing lighting
 		
@@ -407,7 +408,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		setupShadowBuffers();
 		
-		lightVmat.identity().setLookAt(lanternPosition, new Vector3f(0f,0f,0f), new Vector3f(0f,1f,0f));	// vector from light to origin
+		lightVmat.identity().setLookAt(new Vector3f(lanternPosition.x*(-1),lanternPosition.y*(-1), lanternPosition.z*(-1)) , new Vector3f(0f,0f,0f), new Vector3f(0f,1f,0f));	// vector from light to origin
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
@@ -420,7 +421,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Draw the shadows of each object 
 		mStack.pushMatrix();
-		model.forEach((key,target) -> target.renderShadows(mStack, lightVmat, lightPmat));
+		model.forEach((key,target) -> target.renderShadows(mStack, lanternMat, lightPmat));
 		mStack.popMatrix();
 		gl.glDisable(GL_POLYGON_OFFSET_FILL);	// artifact reduction, continued
 		
