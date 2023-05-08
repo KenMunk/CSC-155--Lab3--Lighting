@@ -16,6 +16,8 @@ uniform mat4 m_matrix;
 uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
+uniform mat4 lightView;
+uniform mat4 lightPerspective;
 
 uniform float fogStart;
 uniform float fogEnd;
@@ -37,17 +39,21 @@ in vec3 varyingHalfVector;
 in vec3 vNormal;
 in vec3 vVertPos;
 
+in vec4 shadow_coord;
+
 out vec4 color;
 
 //the material struct has been removed and replaced with 4 textures
 //Creates a texture sampler for the texture at binding 0
-layout (binding=0) uniform sampler2D textureSample;
-layout (binding=1) uniform sampler2D ambientColor;
-layout (binding=2) uniform sampler2D diffuseColor;
-layout (binding=3) uniform sampler2D specularColor;
-layout (binding=4) uniform sampler2D shininessMap;
-layout (binding=5) uniform sampler2D normMap;
-layout (binding=6) uniform samplerCube environmentMap;
+
+layout (binding=0) uniform sampler2DShadow shadowTex;
+layout (binding=1) uniform sampler2D textureSample;
+layout (binding=2) uniform sampler2D ambientColor;
+layout (binding=3) uniform sampler2D diffuseColor;
+layout (binding=4) uniform sampler2D specularColor;
+layout (binding=5) uniform sampler2D shininessMap;
+layout (binding=6) uniform sampler2D normMap;
+layout (binding=7) uniform samplerCube environmentMap;
 
 
 vec3 calcNewNormal()
@@ -62,6 +68,14 @@ vec3 calcNewNormal()
 	vec3 newNormal = tbn * retrievedNormal;
 	newNormal = normalize(newNormal);
 	return newNormal;
+}
+
+
+float lookup(float x, float y)
+{  	float t = textureProj(shadowTex, shadow_coord + vec4(x * 0.001 * shadow_coord.w,
+                                                         y * 0.001 * shadow_coord.w,
+                                                         -0.01, 0.0));
+	return t;
 }
 
 void main(void)
@@ -111,9 +125,23 @@ void main(void)
 	//*Anything mentioning material. is invalid with this implementation
 	
 	
+	/*
+		Working out the light
+	
+	*/
+	
 	vec3 ambient = ((globalAmbient * ambientColor) + (light.ambient * ambientColor)).xyz;
 	vec3 diffuse = light.diffuse.xyz * diffuseColor.xyz * max(cosTheta,0.0);
 	vec3 specular = light.specular.xyz * specularColor.xyz * pow(max(cosPhi,0.0), shininessLevel.x*3.0);
+	
+	vec3 adsRaw = (ambient + diffuse + specular);
+	float maxValue =  max(max(adsRaw.x, adsRaw.y), adsRaw.z);
+	if(maxValue < 1){
+		maxValue = 1;
+	}
+	
+	
+	
 	
 	//Taking the environment reflection and then filtering it based off the material
 	
@@ -126,14 +154,38 @@ void main(void)
 	}
 	vec3 reflectionColor = ((texture(environmentMap,r)).xyz) *  (reflectionFilter/maxFilter) * shininessLevel.x;
 	
-	vec3 adsRaw = (ambient + diffuse + specular);
-	float maxValue =  max(max(adsRaw.x, adsRaw.y), adsRaw.z);
-	if(maxValue < 1){
-		maxValue = 1;
-	}
+	/*
+		Now on to the dark subject of shadows
+	*/
+	
+	//*
+	float shadowFactor=0.0;
+	
+	float swidth = 2.5;
+	vec2 o = mod(floor(gl_FragCoord.xy), 2.0) * swidth;
+	shadowFactor += lookup(-1.5*swidth + o.x,  1.5*swidth - o.y);
+	shadowFactor += lookup(-1.5*swidth + o.x, -0.5*swidth - o.y);
+	shadowFactor += lookup( 0.5*swidth + o.x,  1.5*swidth - o.y);
+	shadowFactor += lookup( 0.5*swidth + o.x, -0.5*swidth - o.y);
+	shadowFactor = shadowFactor / 4.0;
 	
 	
-	vec4 colorSample = (textureColor * vec4((adsRaw), 1.0))+vec4(reflectionColor, 1.0);
+	vec4 shadowColor = vec4(ambient,1.0)*textureColor;
+	//*/
+	/*
+		Combining all of the colors from the lights, and shadows
+	*/
+	/*
+	vec4 litColor = (textureColor * vec4((adsRaw), 1.0));
+	vec4 colorSample = litColor+vec4(reflectionColor, 1.0);
+	
+	//*/ 
+	//*
+	
+	vec4 litColor = (textureColor * vec4((shadowFactor*adsRaw), 1.0));
+	
+	vec4 colorSample = shadowColor+litColor+vec4(reflectionColor, 1.0);
+	//*/
 	
 	color = mix(fogColor,colorSample,fogFactor);
 	//color = vec4(ambient,1);

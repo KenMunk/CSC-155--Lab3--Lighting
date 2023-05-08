@@ -48,6 +48,12 @@ public class DrawableModel{
 	private float fogStart;
 	private float fogEnd;
 	
+	private boolean castShadows = false;
+	
+	// shadow stuff (From CSC155 Program 8-2
+	private Matrix4f shadowMVP1 = new Matrix4f();
+	private Matrix4f shadowMVP2 = new Matrix4f();
+	
 	/*
 	Storing other textures in a hash map for the same reason
 	*/
@@ -68,7 +74,7 @@ public class DrawableModel{
 		this.textures = new HashMap<Integer, TextureBinding>();
 		this.vector4Properties = new HashMap<String, Vector4f>();
 		
-		this.addTexture(GL_TEXTURE0, primaryTexturePath);
+		this.addTexture(GL_TEXTURE1, primaryTexturePath);
 		
 		this.fogStart = 50f;
 		this.fogEnd = 100f;
@@ -96,7 +102,7 @@ public class DrawableModel{
 		this.textures = new HashMap<Integer, TextureBinding>();
 		this.vector4Properties = new HashMap<String, Vector4f>();
 		
-		this.addTexture(GL_TEXTURE0, primaryTexturePath);
+		this.addTexture(GL_TEXTURE1, primaryTexturePath);
 		
 		this.translate(position);
 		this.rotate(rotation);
@@ -252,17 +258,21 @@ public class DrawableModel{
 		String environmentMapPath
 	){
 		
-		this.addTexture(GL_TEXTURE1, ambientColorMapPath);
-		this.addTexture(GL_TEXTURE2, diffuseColorMapPath);
-		this.addTexture(GL_TEXTURE3, specularColorMapPath);
-		this.addTexture(GL_TEXTURE4, shininessMapPath);
-		this.addTexture(GL_TEXTURE5, normalMapPath);
-		this.textures.put(GL_TEXTURE6, new CubeMapBinding(environmentMapPath));
+		this.addTexture(GL_TEXTURE2, ambientColorMapPath);
+		this.addTexture(GL_TEXTURE3, diffuseColorMapPath);
+		this.addTexture(GL_TEXTURE4, specularColorMapPath);
+		this.addTexture(GL_TEXTURE5, shininessMapPath);
+		this.addTexture(GL_TEXTURE6, normalMapPath);
+		this.textures.put(GL_TEXTURE7, new CubeMapBinding(environmentMapPath));
 		
 	}
 	
 	public void addTexture(int textureUnit, String texturePath){
 		this.textures.put(textureUnit, new TextureBinding(texturePath));
+	}
+	
+	public void addTexture(int textureUnit, int textureBinding, int textureType){
+		this.textures.put(textureUnit, new TextureBinding(textureBinding, textureType));
 	}
 	
 	public void bindTextures(){
@@ -310,6 +320,21 @@ public class DrawableModel{
 		
 	}
 	
+	public void renderChildrenShadows(Matrix4fStack stackMat, Matrix4f viewMat, Matrix4f perspectiveMat){
+		
+		if(this.child != null){
+			for(int i = 0; i<this.child.length; i++){
+				
+				int childIndex = i;
+				this.otherMatrices.forEach(
+					(key,target) -> this.child[childIndex].addOtherMatrix(key,target)
+				);
+				
+				this.child[i].renderShadows(stackMat,viewMat,perspectiveMat);
+			}
+		}
+		
+	}
 	
 	public void createNormMatrix(Matrix4fc modelMatrix){
 		
@@ -379,6 +404,10 @@ public class DrawableModel{
 		this.fog = state;
 	}
 	
+	public void shadowCastingEnabled(boolean state){
+		this.castShadows = state;
+	}
+	
 	public void bindFog(){
 		
 		if(fog){
@@ -426,6 +455,33 @@ public class DrawableModel{
 		);
 	}
 	
+	public void renderShadows(Matrix4fStack stackMat, Matrix4f lightViewMat, Matrix4f perspectiveMat){
+		
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		
+		stackMat.pushMatrix();
+		
+		gl.glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+		gl.glEnableVertexAttribArray(0);
+		
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glEnable(GL_CULL_FACE);
+		gl.glFrontFace(GL_CCW);
+		gl.glEnable(GL_DEPTH_TEST);
+		gl.glDepthFunc(GL_LEQUAL);
+		
+		this.addOtherMatrix("m_matrix", stackMat);
+		this.addOtherMatrix("lightView", lightViewMat);
+		this.addOtherMatrix("lightPerspective", perspectiveMat);
+		
+		this.draw();
+		
+		this.renderChildrenShadows(stackMat, lightViewMat, perspectiveMat);
+		
+		stackMat.popMatrix();
+	}
+	
 	/*Refactoring to support shaders with different configs
 	
 		This render method will take a hash map of matrices and
@@ -440,31 +496,14 @@ public class DrawableModel{
 		
 		FloatBuffer vals = Buffers.newDirectFloatBuffer(16);
 		
-		//Get the matrices 
-		int mvLoc = gl.glGetUniformLocation(this.renderingProgram, "m_matrix");
-		
-		//Keeping this here because it's simply easier
-		int pLoc = gl.glGetUniformLocation(this.renderingProgram, "p_matrix");
-		
 		stackMat.pushMatrix();
 		
 		//Adds all of the local transforms to the stack
 		this.createModelMatrix(stackMat);
 		this.createNormMatrix(stackMat);
 		
-		gl.glUniformMatrix4fv(
-			mvLoc, 
-			1, 
-			false, 
-			stackMat.get(vals)
-		);
-		
-		gl.glUniformMatrix4fv(
-			pLoc, 
-			1, 
-			false, 
-			perspectiveMat.get(vals)
-		);
+		this.addOtherMatrix("m_matrix", stackMat);
+		this.addOtherMatrix("p_matrix", perspectiveMat);
 		
 		this.bindAllProperties();
 		this.bindAllOtherMatrix();
