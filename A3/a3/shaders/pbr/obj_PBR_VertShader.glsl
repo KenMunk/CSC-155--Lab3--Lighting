@@ -16,7 +16,8 @@ uniform mat4 m_matrix;
 uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
-uniform mat4 shadowMVP;
+uniform mat4 lightView;
+uniform mat4 lightPerspective;
 
 uniform float fogStart;
 uniform float fogEnd;
@@ -50,13 +51,14 @@ handled in the material textures in order to make it easier to diversify materia
 Yes, I'm literally mimicking how Unity is doing their shaders
 //*/
 
-layout (binding=0) uniform sampler2D textureSample;
-layout (binding=1) uniform sampler2D ambientColor;
-layout (binding=2) uniform sampler2D diffuseColor;
-layout (binding=3) uniform sampler2D specularColor;
-layout (binding=4) uniform sampler2D shininessMap;
-layout (binding=5) uniform sampler2D normMap;
-layout (binding=6) uniform samplerCube environmentMap;
+layout (binding=0) uniform sampler2DShadow shadowTex;
+layout (binding=1) uniform sampler2D textureSample;
+layout (binding=2) uniform sampler2D ambientColor;
+layout (binding=3) uniform sampler2D diffuseColor;
+layout (binding=4) uniform sampler2D specularColor;
+layout (binding=5) uniform sampler2D shininessMap;
+layout (binding=6) uniform sampler2D normMap;
+layout (binding=7) uniform samplerCube environmentMap;
 
 void main(void)
 {	
@@ -79,6 +81,7 @@ void main(void)
 
 	gl_Position = p_matrix * v_matrix * m_matrix * vec4(position,1.0);
 	
+	shadow_coord = m_matrix * lightView * lightPerspective * vec4(position,1.0);
 	
 	vertEyeSpacePos = (v_matrix * m_matrix * vec4(position,1.0)).xyz;
 	//*/

@@ -23,6 +23,14 @@ public class TextureBinding{
 		this.setTexture(texturePath);
 	}
 	
+	public TextureBinding(int textureMemPos, int textureType){
+		
+		this.texturePath = "pre-defined texture";
+		this.memoryLocation = textureMemPos;
+		this.textureType = textureType;
+		
+	}
+	
 	public void setTexture(String texturePath){
 		this.texturePath = texturePath;
 		this.memoryLocation = Utils.loadTexture(texturePath);

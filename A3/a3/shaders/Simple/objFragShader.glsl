@@ -16,7 +16,8 @@ uniform mat4 m_matrix;
 uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
-uniform mat4 shadowMVP;
+uniform mat4 lightView;
+uniform mat4 lightPerspective;
 
 uniform float fogStart;
 uniform float fogEnd;
@@ -30,7 +31,8 @@ in vec2 tc;
 out vec4 color;
 
 //Creates a texture sampler for the texture at binding 0
-layout (binding=0) uniform sampler2D s;
+layout (binding=0) uniform sampler2DShadow shadowTex;
+layout (binding=1) uniform sampler2D textureSample;
 
 void main(void)
 {
@@ -44,5 +46,5 @@ void main(void)
 	float dist = length(vertEyeSpacePos.xyz);
 	float fogFactor = clamp(((fogEnd-dist)/(fogEnd-fogStart)), 0.0, 1.0);
 	
-	color = mix(fogColor,(texture(s,tc)),fogFactor);
+	color = mix(fogColor,(texture(textureSample,tc)),fogFactor);
 }

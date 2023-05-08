@@ -16,7 +16,8 @@ uniform mat4 m_matrix;
 uniform mat4 v_matrix;
 uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
-uniform mat4 shadowMVP;
+uniform mat4 lightView;
+uniform mat4 lightPerspective;
 
 out vec3 vertEyeSpacePos;
 out vec2 tc;
@@ -31,7 +32,8 @@ layout (location = 3) in vec3 tangent;
 
 
 
-layout (binding=0) uniform sampler2D s;
+layout (binding=0) uniform sampler2DShadow shadowTex;
+layout (binding=1) uniform sampler2D textureSample;
 
 void main(void)
 {	gl_Position = p_matrix * v_matrix * m_matrix * vec4(position,1.0);

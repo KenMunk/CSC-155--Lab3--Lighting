@@ -42,6 +42,7 @@ public class Code extends JFrame implements GLEventListener
 	Instant snap;
 	long elapsedTime;
 	int frameCycle;
+	float frames;
 	int lightTimer = 0;
 	private int renderingProgram;
 	
@@ -92,6 +93,8 @@ public class Code extends JFrame implements GLEventListener
 	private Matrix4f lightVmat = new Matrix4f();
 	private Matrix4f lightPmat = new Matrix4f();
 	private Matrix4f b = new Matrix4f();
+	
+	private int shadowRenderProgram;
 
 	public Code()
 	{	setTitle("Chapter 4 - program 4");
@@ -318,7 +321,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		//System.out.println("Elapsed time = " + elapsedTime);
 		
-		float frames = elapsedTime/16f;
+		frames = elapsedTime/16f;
 		frameCycle += frames;
 		frameCycle %= 60;
 		
@@ -400,9 +403,11 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Shadow pass ( pass 1 )
 		
+		gl.glUseProgram(shadowRenderProgram);
+		
 		setupShadowBuffers();
 		
-		lightVmat.identity().setLookAt(currentLightPos, origin, up);	// vector from light to origin
+		lightVmat.identity().setLookAt(lanternPosition, new Vector3f(0f,0f,0f), new Vector3f(0f,1f,0f));	// vector from light to origin
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
@@ -414,8 +419,9 @@ public class Code extends JFrame implements GLEventListener
 		gl.glPolygonOffset(3.0f, 5.0f);		//  shadow artifacts
 		
 		//Draw the shadows of each object 
-		model.forEach((key,target) -> target.renderShadows(mStack,lightPmat));
-		
+		mStack.pushMatrix();
+		model.forEach((key,target) -> target.renderShadows(mStack, lightVmat, lightPmat));
+		mStack.popMatrix();
 		gl.glDisable(GL_POLYGON_OFFSET_FILL);	// artifact reduction, continued
 		
 		/* Bind the shadow texture to all shaders 
@@ -424,7 +430,10 @@ public class Code extends JFrame implements GLEventListener
 		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
 		*/
 		
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
 		//Rendering pass 2
+		model.forEach((key,target) -> target.addTexture(GL_TEXTURE0, shadowTex[0], GL_TEXTURE_2D));
 		model.forEach((key,target) -> target.render(mStack,pMat));
 		
 		/*
@@ -480,24 +489,36 @@ public class Code extends JFrame implements GLEventListener
 		/*Shaders====================================
 		=============================================
 		*/
+		
+		System.out.println("Building world origin shader");
 		renderingProgram = Utils.createShaderProgram(
 			"a3/shaders/WorldOrigin/vertShader.glsl",
 			"a3/shaders/WorldOrigin/fragShader.glsl"
 		);
 		
+		
+		System.out.println("Building simple obj shader");
 		int simpleObjRenderer = Utils.createShaderProgram(
 			"a3/shaders/Simple/objVertShader.glsl", 
 			"a3/shaders/Simple/objFragShader.glsl"
 		);
 		
+		System.out.println("Building skycube shader");
 		int SkyCubeRenderer = Utils.createShaderProgram(
 			"a3/shaders/SkyCube/vertCShader.glsl", 
 			"a3/shaders/SkyCube/fragCShader.glsl"
 		);
 		
+		System.out.println("Building PBR shader");
 		int objPBRenderer = Utils.createShaderProgram(
 			"a3/shaders/pbr/obj_PBR_VertShader.glsl",
 			"a3/shaders/pbr/obj_PBR_FragShader.glsl"
+		);
+		
+		System.out.println("Building shadow shader");
+		shadowRenderProgram = Utils.createShaderProgram(
+			"a3/shaders/shadows/shadowVertShader.glsl",
+			"a3/shaders/shadows/shadowFragShader.glsl"
 		);
 		
 		spaceBox = new SkyCube("NebulaSky",SkyCubeRenderer);
