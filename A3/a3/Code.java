@@ -140,6 +140,9 @@ public class Code extends JFrame implements GLEventListener
 				if(e.getKeyCode() == KeyEvent.VK_SPACE){
 					showAxis = !showAxis;
 				}
+				if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+					System.exit(0);
+				}
 			}
 			
 		});
@@ -343,10 +346,8 @@ public class Code extends JFrame implements GLEventListener
 		//////////////////////////////////////////////////
 		//Camera stuff starts here
 		//////////////////////////////////////////////////
-		
 		mainCamera.localRotateThenTranslate(
 			new Vector3f(
-			
 				-sideAxis.getValue()/frames,
 				-verticalAxis.getValue()/frames,
 				-fwdAxis.getValue()/frames
@@ -363,20 +364,42 @@ public class Code extends JFrame implements GLEventListener
 			lightTimer%=61;
 		}
 		
-		Matrix4f lanternMat = new Matrix4f( mainCamera.returnMatrix());
-		
-		//This is where the mouse clicks will take me
+		Matrix4f lanternMat = new Matrix4f(mainCamera.returnMatrix());
 		lanternMat.translateLocal(lanternLocation);
-		//lanternMat.invert();
+		lanternMat.invert();
 		Vector3f lanternPosition = new Vector3f();
 		lanternMat.getTranslation(lanternPosition);
-		lanternMat.invert();
-		
-		lightingProperties.put("light.position", new Vector4f(new Vector3f(lanternPosition.x*(-1),lanternPosition.y*(-1), lanternPosition.z*(-1)), 
-			1.0f
-		));
-		
 		model.get("lantern").setPosition(new Vector3f(lanternPosition.x*(1),lanternPosition.y*(1), lanternPosition.z*(1)));
+		
+		if(spaceBar.getValue() != 0){
+			System.out.println("lantern position is: " + lanternPosition);
+		}
+		
+		//lanternMat = new Matrix4f(mainCamera.returnMatrix());
+		Vector3f cameraPosition = new Vector3f();
+		mainCamera.returnMatrix().getTranslation(cameraPosition);
+		lanternMat = new Matrix4f();
+		//This is where the mouse clicks will take me
+		//lanternMat.translate(cameraPosition.sub(lanternLocation));
+		lanternMat.translate(lanternLocation);
+		lanternMat.mul(mainCamera.returnMatrix());
+		
+		lanternMat.invert();
+		lanternMat.getTranslation(lanternPosition);
+		//lanternMat.invert();
+		
+		if(spaceBar.getValue() != 0){
+			System.out.println("light position is: " + lanternPosition);
+		}
+		
+		Vector4f lightPropPos = new Vector4f(new Vector3f(lanternPosition.x*(1),lanternPosition.y*(1), lanternPosition.z*(1)), 
+			1.0f
+		);
+		
+		
+		
+		lightingProperties.put("light.position", lightPropPos);
+		
 		
 		//Remove when implementing lighting
 		
@@ -406,14 +429,15 @@ public class Code extends JFrame implements GLEventListener
 		
 		gl.glUseProgram(shadowRenderProgram);
 		
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		
 		setupShadowBuffers();
 		
-		lightVmat.identity().setLookAt(new Vector3f(lanternPosition.x*(-1),lanternPosition.y*(-1), lanternPosition.z*(-1)) , new Vector3f(0f,0f,0f), new Vector3f(0f,1f,0f));	// vector from light to origin
+		lightVmat.identity().setLookAt(new Vector3f(lanternPosition.x*(-1),lanternPosition.y*(-1), lanternPosition.z*(-1)) , new Vector3f(0f,-5f,0f), new Vector3f(0f,0f,0f));	// vector from light to origin
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
-		gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
-		
+		gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[0], 0);
 		gl.glDrawBuffer(GL_NONE);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glEnable(GL_POLYGON_OFFSET_FILL);	//  for reducing
@@ -421,7 +445,9 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Draw the shadows of each object 
 		mStack.pushMatrix();
-		model.forEach((key,target) -> target.renderShadows(mStack, lanternMat, lightPmat));
+		
+		Matrix4f lightMatrix = new Matrix4f(lanternMat);
+		model.forEach((key,target) -> target.renderShadows(mStack, lightMatrix, lightPmat));
 		mStack.popMatrix();
 		gl.glDisable(GL_POLYGON_OFFSET_FILL);	// artifact reduction, continued
 		
@@ -579,12 +605,21 @@ public class Code extends JFrame implements GLEventListener
 		
 		model.put("coreIsland", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
-			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
-			simpleObjRenderer,
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--MarbleLime.png",
+			objPBRenderer,
 			new Vector3f(0f,-0.6f,0f),
 			new Vector3f(0f,0f,0f),
 			new Vector3f(2f,2f,2f)
 		));
+		
+		model.get("coreIsland").addADSSTextures(
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--ambient.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--diffuse.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--specular.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--shininess.png",
+			"NormalDefault.png",
+			"NebulaSky"
+		);
 		
 		model.put("Island2", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
