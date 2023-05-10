@@ -30,18 +30,18 @@ public abstract class Texture3D{
 		this.depth = depth;
 	}
 	
-	protected void fillDataArray(byte data[]);
+	protected abstract void fillDataArray(byte data[]);
 	
 	public void bindTexture(){
 		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		
 		
-		byte[] textureSpace = new byte[width*height*depth*4];
+		byte[] textureSpace = new byte[this.width*this.height*this.depth*4];
 		
 		fillDataArray(textureSpace);
 		
-		ByteBuffer texByteBuffer = Buffers.newDirectByteBuffer(data);
+		ByteBuffer texByteBuffer = Buffers.newDirectByteBuffer(textureSpace);
 		
 		//Note, can't really define this as a straight
 		//integer because the integer reference will not be
@@ -53,9 +53,9 @@ public abstract class Texture3D{
 		
 		gl.glBindTexture(GL_TEXTURE_3D, textureID);
 		
-		gl.glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, noiseWidth, noiseHeight, noiseDepth);
+		gl.glTexStorage3D(GL_TEXTURE_3D, 1, GL_RGBA8, this.width, this.height, this.depth);
 		gl.glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0,
-				noiseWidth, noiseHeight, noiseDepth, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, bb);
+				this.width, this.height, this.depth, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, texByteBuffer);
 		
 		gl.glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		
