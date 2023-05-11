@@ -161,11 +161,11 @@ void main(void)
 	//*
 	float shadowFactor=0.0;
 	
-	float swidth = 2.5;
-	vec2 o = mod(floor(gl_FragCoord.xy), 2.0) * swidth;
-	shadowFactor += lookup(-1.5*swidth + o.x,  1.5*swidth - o.y);
-	shadowFactor += lookup(-1.5*swidth + o.x, -0.5*swidth - o.y);
-	shadowFactor += lookup( 0.5*swidth + o.x,  1.5*swidth - o.y);
+	float swidth = 1;
+	vec2 o = mod(floor(gl_FragCoord.xy), 1) * swidth;
+	shadowFactor += lookup(-0.5*swidth + o.x,  0.5*swidth - o.y);
+	shadowFactor += lookup(-0.5*swidth + o.x, -0.5*swidth - o.y);
+	shadowFactor += lookup( 0.5*swidth + o.x,  0.5*swidth - o.y);
 	shadowFactor += lookup( 0.5*swidth + o.x, -0.5*swidth - o.y);
 	shadowFactor = shadowFactor / 4.0;
 	
