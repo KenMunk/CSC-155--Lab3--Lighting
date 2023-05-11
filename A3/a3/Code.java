@@ -371,7 +371,7 @@ public class Code extends JFrame implements GLEventListener
 		lanternMat.getTranslation(lanternPosition);
 		model.get("lantern").setPosition(new Vector3f(lanternPosition.x*(1),lanternPosition.y*(1), lanternPosition.z*(1)));
 		
-		if(spaceBar.getValue() != 0 && false){
+		if(spaceBar.getValue() != 0){
 			System.out.println("lantern position is: " + lanternPosition);
 		}
 		
@@ -388,7 +388,7 @@ public class Code extends JFrame implements GLEventListener
 		lanternMat.getTranslation(lanternPosition);
 		//lanternMat.invert();
 		
-		if(spaceBar.getValue() != 0 && false){
+		if(spaceBar.getValue() != 0){
 			System.out.println("light position is: " + lanternPosition);
 		}
 		
@@ -437,10 +437,8 @@ public class Code extends JFrame implements GLEventListener
 		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
 		
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
-		
-		//gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[0], 0);
-		gl.glDrawBuffer(shadowBuffer[0]);
+		gl.glDrawBuffer(GL_NONE);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glEnable(GL_POLYGON_OFFSET_FILL);	//  for reducing
 		gl.glPolygonOffset(3.0f, 5.0f);		//  shadow artifacts
@@ -449,12 +447,6 @@ public class Code extends JFrame implements GLEventListener
 		mStack.pushMatrix();
 		
 		Matrix4f lightMatrix = new Matrix4f(lanternMat);
-		if(spaceBar.getValue() != 0){
-			System.out.println("mStack = " + mStack);
-			System.out.println("lightMatrix = " + lightMatrix);
-			System.out.println("lightPmat = " + lightPmat);
-			//System.out.println("lightMVP = " + lightMVP);
-		}
 		model.forEach((key,target) -> target.renderShadows(mStack, lightMatrix, lightPmat));
 		mStack.popMatrix();
 		gl.glDisable(GL_POLYGON_OFFSET_FILL);	// artifact reduction, continued
