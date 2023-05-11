@@ -471,6 +471,9 @@ public class DrawableModel{
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 		
+		this.createModelMatrix(stackMat);
+		this.createNormMatrix(stackMat);
+		
 		//this.addOtherMatrix("m_matrix", stackMat);
 		//this.addOtherMatrix("lightView", lightViewMat);
 		//this.addOtherMatrix("lightPerspective", perspectiveMat);

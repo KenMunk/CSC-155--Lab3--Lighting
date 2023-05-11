@@ -367,6 +367,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		//This is where the mouse clicks will take me
 		lanternMat.translateLocal(lanternLocation);
+		lanternMat.translateLocal(new Vector3f(0,0.5f,0));
 		lanternMat.invert();
 		Vector3f lanternPosition = new Vector3f();
 		lanternMat.getTranslation(lanternPosition);
@@ -580,12 +581,21 @@ public class Code extends JFrame implements GLEventListener
 		
 		model.put("coreIsland", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
-			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
-			simpleObjRenderer,
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--MarbleLime.png",
+			objPBRenderer,
 			new Vector3f(0f,-0.6f,0f),
 			new Vector3f(0f,0f,0f),
 			new Vector3f(2f,2f,2f)
 		));
+		
+		model.get("coreIsland").addADSSTextures(
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--ambient.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--diffuse.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--specular.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--shininess.png",
+			"NormalDefault.png",
+			"NebulaSky"
+		);
 		
 		model.put("Island2", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
