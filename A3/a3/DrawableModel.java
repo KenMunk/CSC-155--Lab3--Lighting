@@ -478,6 +478,7 @@ public class DrawableModel{
 		//this.addOtherMatrix("lightView", lightViewMat);
 		//this.addOtherMatrix("lightPerspective", perspectiveMat);
 		
+		
 		Matrix4f lightMVP = new Matrix4f(lightViewMat);
 		lightMVP.mul(perspectiveMat);
 		lightMVP.mul(stackMat);
