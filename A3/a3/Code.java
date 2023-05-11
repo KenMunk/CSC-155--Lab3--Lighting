@@ -94,6 +94,9 @@ public class Code extends JFrame implements GLEventListener
 	private Matrix4f lightPmat = new Matrix4f();
 	private Matrix4f b = new Matrix4f();
 	
+	private boolean shadowMap = true;
+	private boolean showShadowMap = false;
+	
 	private int shadowRenderProgram;
 
 	public Code()
@@ -125,6 +128,11 @@ public class Code extends JFrame implements GLEventListener
 				spaceBar.pressCheck(e.getKeyCode());
 				
 				
+				
+				if(e.getKeyCode() == KeyEvent.VK_M){
+					showShadowMap = true;
+				}
+				
 			}
 			
 			public void keyReleased(KeyEvent e){
@@ -139,6 +147,22 @@ public class Code extends JFrame implements GLEventListener
 				
 				if(e.getKeyCode() == KeyEvent.VK_SPACE){
 					showAxis = !showAxis;
+				}
+				
+				
+				
+				if(e.getKeyCode() == KeyEvent.VK_L){
+					shadowMap = !shadowMap;
+					System.out.println("Shadow Map On: " + shadowMap);
+				}
+				
+				if(e.getKeyCode() == KeyEvent.VK_M){
+					showShadowMap = false;
+				}
+				
+				
+				if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+					System.exit(0);
 				}
 			}
 			
@@ -257,14 +281,7 @@ public class Code extends JFrame implements GLEventListener
 		
 		//gl.glEnable(GL_DEBUG_OUTPUT);
 		
-		try{
-			
-			render();
-			
-		}
-		catch( Exception e){
-			e.printStackTrace();
-		}
+		render();
 	}
 	
 	private void animationFrame(){
@@ -363,13 +380,15 @@ public class Code extends JFrame implements GLEventListener
 			lightTimer%=61;
 		}
 		
-		Matrix4f lanternMat = new Matrix4f( mainCamera.returnMatrix());
+		Matrix4f lanternMat = new Matrix4f(mainCamera.returnMatrix());
 		
-		//This is where the mouse clicks will take me
 		lanternMat.translateLocal(lanternLocation);
+		lanternMat.translateLocal(new Vector3f(0,0.5f,0));
 		lanternMat.invert();
 		Vector3f lanternPosition = new Vector3f();
 		lanternMat.getTranslation(lanternPosition);
+		
+		//System.out.println("lantern pos: " + lanternPosition);
 		
 		lightingProperties.put("light.position", new Vector4f(lanternPosition, 
 			1.0f
@@ -403,38 +422,57 @@ public class Code extends JFrame implements GLEventListener
 		
 		//Shadow pass ( pass 1 )
 		
-		gl.glUseProgram(shadowRenderProgram);
-		
 		setupShadowBuffers();
 		
-		lightVmat.identity().setLookAt(lanternPosition, new Vector3f(0f,0f,0f), new Vector3f(0f,1f,0f));	// vector from light to origin
-		lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+		if(shadowMap){
+				
+			gl.glUseProgram(shadowRenderProgram);
+			
+			lightVmat.identity().setLookAt(lanternPosition, new Vector3f(0f,0f,0f), new Vector3f(0f,1f,0f));	// vector from light to origin
+			lightPmat.identity().setPerspective((float) Math.toRadians(60.0f), aspect, 0.1f, 1000.0f);
+			
+			if(!showShadowMap){
+				gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
+				gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
+				gl.glDrawBuffer(GL_NONE);
+			}
+			else{
+				gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			}
+			
+			gl.glEnable(GL_DEPTH_TEST);
+			gl.glEnable(GL_POLYGON_OFFSET_FILL);	//  for reducing
+			gl.glPolygonOffset(3.0f, 5.0f);		//  shadow artifacts
+			
+			//Draw the shadows of each object 
+			mStack.pushMatrix();
+			
+			//System.out.println("lantern view pos: " + lightVmat);
+			model.forEach((key,target) -> target.renderShadows(mStack, lightVmat, lightPmat));
+			mStack.popMatrix();
+			gl.glDisable(GL_POLYGON_OFFSET_FILL);	// artifact reduction, continued
+			
+			/* Bind the shadow texture to all shaders 
+			gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			gl.glActiveTexture(GL_TEXTURE0);
+			gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
+			*/
+			
+			//Rendering pass 2
+			
+		}
+		else{
+			gl.glClear(GL_DEPTH_BUFFER_BIT);
+		}
 		
-		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
-		gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
-		
-		gl.glDrawBuffer(GL_NONE);
-		gl.glEnable(GL_DEPTH_TEST);
-		gl.glEnable(GL_POLYGON_OFFSET_FILL);	//  for reducing
-		gl.glPolygonOffset(3.0f, 5.0f);		//  shadow artifacts
-		
-		//Draw the shadows of each object 
-		mStack.pushMatrix();
-		model.forEach((key,target) -> target.renderShadows(mStack, lightVmat, lightPmat));
-		mStack.popMatrix();
-		gl.glDisable(GL_POLYGON_OFFSET_FILL);	// artifact reduction, continued
-		
-		/* Bind the shadow texture to all shaders 
-		gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		gl.glActiveTexture(GL_TEXTURE0);
-		gl.glBindTexture(GL_TEXTURE_2D, shadowTex[0]);
-		*/
-		
-		gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		
-		//Rendering pass 2
 		model.forEach((key,target) -> target.addTexture(GL_TEXTURE0, shadowTex[0], GL_TEXTURE_2D));
-		model.forEach((key,target) -> target.render(mStack,pMat));
+		
+		gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
+		
+		if(!showShadowMap){
+			model.forEach((key,target) -> target.render(mStack,pMat));
+		}
 		
 		/*
 		
@@ -578,12 +616,21 @@ public class Code extends JFrame implements GLEventListener
 		
 		model.put("coreIsland", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",
-			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top.png",
-			simpleObjRenderer,
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--MarbleLime.png",
+			objPBRenderer,
 			new Vector3f(0f,-0.6f,0f),
 			new Vector3f(0f,0f,0f),
 			new Vector3f(2f,2f,2f)
 		));
+		
+		model.get("coreIsland").addADSSTextures(
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--ambient.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--diffuse.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--specular.png",
+			"Hex-Tile-Room -- Floor -- V-UV-03--Marbel_Top--pbr--shininess.png",
+			"NormalDefault.png",
+			"NebulaSky"
+		);
 		
 		model.put("Island2", new DrawableModel(
 			"Hex-Tile-Room -- Floor -- V-UV-03.obj",

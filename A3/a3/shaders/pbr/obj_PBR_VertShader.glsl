@@ -18,6 +18,7 @@ uniform mat4 p_matrix;
 uniform mat4 norm_matrix;
 uniform mat4 lightView;
 uniform mat4 lightPerspective;
+uniform mat4 lightMVP;
 
 uniform float fogStart;
 uniform float fogEnd;
@@ -81,7 +82,7 @@ void main(void)
 
 	gl_Position = p_matrix * v_matrix * m_matrix * vec4(position,1.0);
 	
-	shadow_coord = m_matrix * lightView * lightPerspective * vec4(position,1.0);
+	shadow_coord = lightMVP * vec4(position,1.0);
 	
 	vertEyeSpacePos = (v_matrix * m_matrix * vec4(position,1.0)).xyz;
 	//*/

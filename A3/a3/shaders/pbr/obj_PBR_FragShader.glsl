@@ -116,7 +116,7 @@ void main(void)
 	// halfway vector varyingHalfVector was computed in the vertex shader,
 	// and interpolated prior to reaching the fragment shader.
 	// It is copied into variable H here for convenience later.
-	vec3 H = normalize(reflect(-L,N));
+	vec3 H = normalize(varyingHalfVector);
 	
 	// get angle between the normal and the halfway vector
 	float cosPhi = dot(H,N);
@@ -161,11 +161,11 @@ void main(void)
 	//*
 	float shadowFactor=0.0;
 	
-	float swidth = 2.5;
-	vec2 o = mod(floor(gl_FragCoord.xy), 2.0) * swidth;
-	shadowFactor += lookup(-1.5*swidth + o.x,  1.5*swidth - o.y);
-	shadowFactor += lookup(-1.5*swidth + o.x, -0.5*swidth - o.y);
-	shadowFactor += lookup( 0.5*swidth + o.x,  1.5*swidth - o.y);
+	float swidth = 1;
+	vec2 o = mod(floor(gl_FragCoord.xy), 1) * swidth;
+	shadowFactor += lookup(-0.5*swidth + o.x,  0.5*swidth - o.y);
+	shadowFactor += lookup(-0.5*swidth + o.x, -0.5*swidth - o.y);
+	shadowFactor += lookup( 0.5*swidth + o.x,  0.5*swidth - o.y);
 	shadowFactor += lookup( 0.5*swidth + o.x, -0.5*swidth - o.y);
 	shadowFactor = shadowFactor / 4.0;
 	
@@ -182,9 +182,9 @@ void main(void)
 	//*/ 
 	//*
 	
-	vec4 litColor = (textureColor * vec4((shadowFactor*adsRaw), 1.0));
+	vec4 litColor = (textureColor * vec4((adsRaw), 1.0));
 	
-	vec4 colorSample = shadowColor+litColor+vec4(reflectionColor, 1.0);
+	vec4 colorSample = mix(shadowColor,litColor,shadowFactor)+vec4(reflectionColor, 1.0);
 	//*/
 	
 	color = mix(fogColor,colorSample,fogFactor);
