@@ -116,7 +116,7 @@ void main(void)
 	// halfway vector varyingHalfVector was computed in the vertex shader,
 	// and interpolated prior to reaching the fragment shader.
 	// It is copied into variable H here for convenience later.
-	vec3 H = normalize(reflect(-L,N));
+	vec3 H = normalize(varyingHalfVector);
 	
 	// get angle between the normal and the halfway vector
 	float cosPhi = dot(H,N);

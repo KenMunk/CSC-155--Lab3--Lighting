@@ -338,13 +338,13 @@ public class DrawableModel{
 	
 	public void createNormMatrix(Matrix4fc modelMatrix){
 		
-		Matrix4f invTrMat = new Matrix4f();
+		Matrix4f invTrMat = new Matrix4f(modelMatrix);
+		invTrMat.mul(this.otherMatrices.get("v_matrix"));
 		
-		modelMatrix.invert(invTrMat);
 		//invTrMat.transpose(invTrMat);
-		invTrMat.invert();
+		invTrMat.invert(invTrMat);
 		//invTrMat.transpose(invTrMat);
-		invTrMat.invert();
+		//invTrMat.invert();
 		
 		this.addOtherMatrix("norm_matrix", invTrMat);
 	}
@@ -472,7 +472,7 @@ public class DrawableModel{
 		gl.glDepthFunc(GL_LEQUAL);
 		
 		this.createModelMatrix(stackMat);
-		this.createNormMatrix(stackMat);
+		//this.createNormMatrix(stackMat);
 		
 		//this.addOtherMatrix("m_matrix", stackMat);
 		//this.addOtherMatrix("lightView", lightViewMat);
