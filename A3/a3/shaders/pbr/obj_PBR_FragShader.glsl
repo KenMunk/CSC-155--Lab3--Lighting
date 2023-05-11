@@ -182,9 +182,9 @@ void main(void)
 	//*/ 
 	//*
 	
-	vec4 litColor = (textureColor * vec4((shadowFactor*adsRaw), 1.0));
+	vec4 litColor = (textureColor * vec4((adsRaw), 1.0));
 	
-	vec4 colorSample = shadowColor+litColor+vec4(reflectionColor, 1.0);
+	vec4 colorSample = mix(shadowColor,litColor,shadowFactor)+vec4(reflectionColor, 1.0);
 	//*/
 	
 	color = mix(fogColor,colorSample,fogFactor);

@@ -413,6 +413,8 @@ public class Code extends JFrame implements GLEventListener
 		gl.glBindFramebuffer(GL_FRAMEBUFFER, shadowBuffer[0]);
 		gl.glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowTex[0], 0);
 		
+		//gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
 		gl.glDrawBuffer(GL_NONE);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glEnable(GL_POLYGON_OFFSET_FILL);	//  for reducing
