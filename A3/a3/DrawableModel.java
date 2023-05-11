@@ -465,15 +465,20 @@ public class DrawableModel{
 		gl.glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
 		gl.glEnableVertexAttribArray(0);
 		
-		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		//gl.glClear(GL_DEPTH_BUFFER_BIT);
 		gl.glEnable(GL_CULL_FACE);
 		gl.glFrontFace(GL_CCW);
 		gl.glEnable(GL_DEPTH_TEST);
 		gl.glDepthFunc(GL_LEQUAL);
 		
-		this.addOtherMatrix("m_matrix", stackMat);
-		this.addOtherMatrix("lightView", lightViewMat);
-		this.addOtherMatrix("lightPerspective", perspectiveMat);
+		//this.addOtherMatrix("m_matrix", stackMat);
+		//this.addOtherMatrix("lightView", lightViewMat);
+		//this.addOtherMatrix("lightPerspective", perspectiveMat);
+		
+		Matrix4f lightMVP = new Matrix4f(lightViewMat);
+		lightMVP.mul(perspectiveMat);
+		lightMVP.mul(stackMat);
+		this.addOtherMatrix("lightMVP", lightMVP);
 		
 		this.draw();
 		
