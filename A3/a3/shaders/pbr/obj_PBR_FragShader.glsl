@@ -135,7 +135,6 @@ void main(void)
 	vec3 specular = light.specular.xyz * specularColor.xyz * pow(max(cosPhi,0.0), shininessLevel.x*3.0);
 	
 	vec3 adsRaw = (ambient + diffuse + specular);
-	vec3 dsRaw = (diffuse + specular);
 	float maxValue =  max(max(adsRaw.x, adsRaw.y), adsRaw.z);
 	if(maxValue < 1){
 		maxValue = 1;
@@ -176,23 +175,22 @@ void main(void)
 	/*
 		Combining all of the colors from the lights, and shadows
 	*/
-	//*
+	/*
 	vec4 litColor = (textureColor * vec4((adsRaw), 1.0));
 	vec4 colorSample = litColor+vec4(reflectionColor, 1.0);
 	
 	//*/ 
 	//*
 	
-	//vec4 litColor = (textureColor * shadowFactor);
+	vec4 litColor = (textureColor * shadowFactor);
 	//vec4 litColor = (textureColor * vec4((adsRaw), 1.0));
 	//vec4 litColor = textureColor;
 	
-	//vec4 colorSample = mix(shadowColor,litColor,shadowFactor);
-	//ShadowMix//vec4 colorSample = mix(shadowColor,litColor,shadowFactor)+vec4(reflectionColor, 1.0);
+	//vec4 colorSample = mix(shadowColor,litColor,shadowFactor)+vec4(reflectionColor, 1.0);
 	//*/
 	
 	//Something about the shadow factor is broken
-	//vec4 colorSample = vec4(shadowFactor, 0,0,1);
+	vec4 colorSample = vec4(shadowFactor, 0,0,1);
 	
 	color = mix(fogColor,colorSample,fogFactor);
 	//color = vec4(ambient,1);
