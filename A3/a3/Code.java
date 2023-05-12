@@ -553,6 +553,12 @@ public class Code extends JFrame implements GLEventListener
 			"a3/shaders/pbr/obj_PBR_FragShader.glsl"
 		);
 		
+		System.out.println("Building PBR Texture3D shader");
+		int objPB3DRenderer = Utils.createShaderProgram(
+			"a3/shaders/pbr/Permutation_Noise/channelized3DMaterial_Vert.glsl",
+			"a3/shaders/pbr/Permutation_Noise/channelized3DMaterial_Frag.glsl"
+		);
+		
 		System.out.println("Building shadow shader");
 		shadowRenderProgram = Utils.createShaderProgram(
 			"a3/shaders/shadows/shadowVertShader.glsl",
@@ -572,16 +578,55 @@ public class Code extends JFrame implements GLEventListener
 			new Vector3f(1f,1f,1f)
 		)));
 		
-		model.get("anvil").addChild(
-			new DrawableModel(
-				"Gladius_Single.obj",
-				"metal_bare_0012_01_s.jpg",
-				simpleObjRenderer,
-				new Vector3f(2f,2.4f,0f),
-				new Vector3f(3f,3.1f,4.72f),
-				new Vector3f(0.2f,0.2f,0.2f)
-			)
+		DrawableModel glaidus = new DrawableModel(
+			"Gladius_Single.obj",
+			"Glaidus_Single_Type0--Default.png",
+			objPB3DRenderer,
+			new Vector3f(2f,6f,0f),
+			new Vector3f(3f,3.1f,4.72f),
+			new Vector3f(0.2f,0.2f,0.2f)
 		);
+		
+		glaidus.addADSSTextures(
+			"Glaidus_Single_Type0--Ambient.png",
+			"Glaidus_Single_Type0--Diffuse.png",
+			"Glaidus_Single_Type0--Specular.png",
+			"Glaidus_Single_Type0--Shininess.png",
+			"NormalDefault.png",
+			"NebulaSky"
+		);
+		
+		Marble3D bladeNoise = new Marble3D(128,128,128,0.2,3.0,5.0);
+		
+		
+		
+		Wood3D handleNoise = new Wood3D(256,256,256,0.3,0.015,40.0);
+		
+		
+		
+		Marble3D detailNoise = new Marble3D(256,256,256,0.02,20.0,32.0);
+		
+		Matrix4f detailColorMod = new Matrix4f().identity();
+		detailColorMod.rotateLocalX(0.5f);
+		detailColorMod.rotateLocalY(0.2f);
+		detailColorMod.rotateLocalY(0.3f);
+		
+		detailNoise.setColorTransform(detailColorMod);
+		
+		glaidus.add3DTextures(
+			"Glaidus_Single_Type0--Channels.png",
+			bladeNoise,
+			handleNoise,
+			detailNoise
+		);
+		
+		model.put("glaidus", glaidus);
+		
+		/*//Glaidus Test//
+		model.get("anvil").addChild(
+			glaidus
+		);
+		//*/
 		
 		model.put("caltrop1",(new DrawableModel(
 			"CaltropStar.obj",

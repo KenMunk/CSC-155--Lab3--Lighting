@@ -40,6 +40,8 @@ out vec3 varyingTangent;
 out vec3 varyingHalfVector;
 out vec4 shadow_coord;
 
+out vec3 vecPosition;
+
 out vec3 vNormal;
 out vec3 vVertPos;
 
@@ -51,16 +53,16 @@ handled in the material textures in order to make it easier to diversify materia
 Yes, I'm literally mimicking how Unity is doing their shaders
 //*/
 
-layout (binding=00) uniform sampler2DShadow shadowTex;
-layout (binding=01) uniform sampler2D textureSample;
-layout (binding=02) uniform sampler2D ambientColor;
-layout (binding=03) uniform sampler2D diffuseColor;
-layout (binding=04) uniform sampler2D specularColor;
-layout (binding=05) uniform sampler2D shininessMap;
-layout (binding=06) uniform sampler2D normMap;
-layout (binding=07) uniform samplerCube environmentMap;
-layout (binding=08) uniform sampler2D channelMap;
-layout (binding=09) uniform sampler3D primaryNoise;
+layout (binding=0) uniform sampler2DShadow shadowTex;
+layout (binding=1) uniform sampler2D textureSample;
+layout (binding=2) uniform sampler2D ambientColor;
+layout (binding=3) uniform sampler2D diffuseColor;
+layout (binding=4) uniform sampler2D specularColor;
+layout (binding=5) uniform sampler2D shininessMap;
+layout (binding=6) uniform sampler2D normMap;
+layout (binding=7) uniform samplerCube environmentMap;
+layout (binding=8) uniform sampler2D channelMap;
+layout (binding=9) uniform sampler3D primaryNoise;
 layout (binding=10) uniform sampler3D secondaryNoise;
 layout (binding=11) uniform sampler3D tertiaryNoise;
 
@@ -88,6 +90,9 @@ void main(void)
 	shadow_coord = m_matrix * lightView * lightPerspective * vec4(position,1.0);
 	
 	vertEyeSpacePos = (v_matrix * m_matrix * vec4(position,1.0)).xyz;
+	
+	//3D texture stuff
+	vecPosition = position;
 	//*/
 	
 }

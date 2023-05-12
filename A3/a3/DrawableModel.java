@@ -267,12 +267,28 @@ public class DrawableModel{
 		
 	}
 	
+	public void add3DTextures(
+		String channelMapPath,
+		Noise3D primary3D,
+		Noise3D secondary3D,
+		Noise3D tertiary3D
+	){
+		this.addTexture(GL_TEXTURE8, channelMapPath);
+		this.addTexture(GL_TEXTURE9, primary3D.textureBinding("Primary Texture"));
+		this.addTexture(GL_TEXTURE10, secondary3D.textureBinding("Secondary Texture"));
+		this.addTexture(GL_TEXTURE11, tertiary3D.textureBinding("Tertiary Texture"));
+	}
+	
 	public void addTexture(int textureUnit, String texturePath){
 		this.textures.put(textureUnit, new TextureBinding(texturePath));
 	}
 	
 	public void addTexture(int textureUnit, int textureBinding, int textureType){
 		this.textures.put(textureUnit, new TextureBinding(textureBinding, textureType));
+	}
+	
+	public void addTexture(int textureUnit, TextureBinding binding){
+		this.textures.put(textureUnit, binding);
 	}
 	
 	public void bindTextures(){

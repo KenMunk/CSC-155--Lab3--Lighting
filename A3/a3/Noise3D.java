@@ -14,7 +14,7 @@ import com.jogamp.opengl.util.texture.*;
 import com.jogamp.common.nio.Buffers;
 import org.joml.*;
 
-public abstract class Noise3D extends Texture3D{
+public class Noise3D extends Texture3D{
 	
 	protected double[][][] noise;
 	protected java.util.Random random = new java.util.Random();
@@ -33,7 +33,11 @@ public abstract class Noise3D extends Texture3D{
 		this.maxZoom = maxZoom;
 		this.colorTransform = new Matrix4f().identity();
 	}
-
+	
+	public void setColorTransform(Matrix4fc colorTransform){
+		this.colorTransform = new Matrix4f(colorTransform);
+	}
+	
 	protected void generateNoise()
 	{	for (int x=0; x<this.width; x++)
 		{	for (int y=0; y<this.height; y++)
@@ -52,17 +56,17 @@ public abstract class Noise3D extends Texture3D{
 	      {	
 			Color c = colorOperation(i,j,k);
 			
-			Vector3f colorVec = new Vec3((float)c.getRed()/255f,(float)c.getGreen()/255f,(float)c.getBlue()/255f);
+			Vector3f colorVec = new Vector3f((float)c.getRed()/255f,(float)c.getGreen()/255f,(float)c.getBlue()/255f);
 			
 			Matrix4f colorMatrix = new Matrix4f();
 			colorMatrix.translate(colorVec);
-			colorMatrix.mul(colorTransform);
+			colorMatrix.mul(this.colorTransform);
 			colorMatrix.getTranslation(colorVec);
 			
 			c = colorOperation(
-				(byte)Math.min(Math.abs(Math.round(color.x*255)),255),
-				(byte)Math.min(Math.abs(Math.round(color.y*255)),255),
-				(byte)Math.min(Math.abs(Math.round(color.z*255)),255)
+				(byte)Math.min(Math.abs(Math.round(colorVec.x*255f)),255),
+				(byte)Math.min(Math.abs(Math.round(colorVec.y*255f)),255),
+				(byte)Math.min(Math.abs(Math.round(colorVec.z*255f)),255)
 			);
 
 	        data[i*(this.width*this.height*4)+j*(this.height*4)+k*4+0] = (byte) c.getRed();
@@ -71,7 +75,9 @@ public abstract class Noise3D extends Texture3D{
 	        data[i*(this.width*this.height*4)+j*(this.height*4)+k*4+3] = (byte) 255;
 	} } } }
 	
-	protected abstract Color colorOperation(int noiseX, int noiseY, int noiseZ);
+	protected Color colorOperation(int noiseX, int noiseY, int noiseZ){
+		return(colorOperation(0,0,0));
+	}
 	
 	protected double smoothNoise(double zoom, double x1, double y1, double z1)
 	{	//get fractional part of x, y, and z
@@ -86,15 +92,15 @@ public abstract class Noise3D extends Texture3D{
 
 		//smooth the noise by interpolating
 		double value = 0.0;
-		value += fractX       * fractY       * fractZ       * noise[(int)x1][(int)y1][(int)z1];
-		value += (1.0-fractX) * fractY       * fractZ       * noise[(int)x2][(int)y1][(int)z1];
-		value += fractX       * (1.0-fractY) * fractZ       * noise[(int)x1][(int)y2][(int)z1];	
-		value += (1.0-fractX) * (1.0-fractY) * fractZ       * noise[(int)x2][(int)y2][(int)z1];
+		value += fractX       * fractY       * fractZ       * noise[(int)Math.abs(x1)%this.width][(int)Math.abs(y1)%this.height][(int)Math.abs(z1)%this.depth];
+		value += (1.0-fractX) * fractY       * fractZ       * noise[(int)Math.abs(x2)%this.width][(int)Math.abs(y1)%this.height][(int)Math.abs(z1)%this.depth];
+		value += fractX       * (1.0-fractY) * fractZ       * noise[(int)Math.abs(x1)%this.width][(int)Math.abs(y2)%this.height][(int)Math.abs(z1)%this.depth];	
+		value += (1.0-fractX) * (1.0-fractY) * fractZ       * noise[(int)Math.abs(x2)%this.width][(int)Math.abs(y2)%this.height][(int)Math.abs(z1)%this.depth];
 				
-		value += fractX       * fractY       * (1.0-fractZ) * noise[(int)x1][(int)y1][(int)z2];
-		value += (1.0-fractX) * fractY       * (1.0-fractZ) * noise[(int)x2][(int)y1][(int)z2];
-		value += fractX       * (1.0-fractY) * (1.0-fractZ) * noise[(int)x1][(int)y2][(int)z2];
-		value += (1.0-fractX) * (1.0-fractY) * (1.0-fractZ) * noise[(int)x2][(int)y2][(int)z2];
+		value += fractX       * fractY       * (1.0-fractZ) * noise[(int)Math.abs(x1)%this.width][(int)Math.abs(y1)%this.height][(int)Math.abs(z2)%this.depth];
+		value += (1.0-fractX) * fractY       * (1.0-fractZ) * noise[(int)Math.abs(x2)%this.width][(int)Math.abs(y1)%this.height][(int)Math.abs(z2)%this.depth];
+		value += fractX       * (1.0-fractY) * (1.0-fractZ) * noise[(int)Math.abs(x1)%this.width][(int)Math.abs(y2)%this.height][(int)Math.abs(z2)%this.depth];
+		value += (1.0-fractX) * (1.0-fractY) * (1.0-fractZ) * noise[(int)Math.abs(x2)%this.width][(int)Math.abs(y2)%this.height][(int)Math.abs(z2)%this.depth];
 		
 		return value;
 	}

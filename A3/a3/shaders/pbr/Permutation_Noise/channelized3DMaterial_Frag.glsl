@@ -39,6 +39,8 @@ in vec3 varyingHalfVector;
 in vec3 vNormal;
 in vec3 vVertPos;
 
+in vec3 vecPosition;
+
 in vec4 shadow_coord;
 
 out vec4 color;
@@ -46,16 +48,16 @@ out vec4 color;
 //the material struct has been removed and replaced with 4 textures
 //Creates a texture sampler for the texture at binding 0
 
-layout (binding=00) uniform sampler2DShadow shadowTex;
-layout (binding=01) uniform sampler2D textureSample;
-layout (binding=02) uniform sampler2D ambientColor;
-layout (binding=03) uniform sampler2D diffuseColor;
-layout (binding=04) uniform sampler2D specularColor;
-layout (binding=05) uniform sampler2D shininessMap;
-layout (binding=06) uniform sampler2D normMap;
-layout (binding=07) uniform samplerCube environmentMap;
-layout (binding=08) uniform sampler2D channelMap;
-layout (binding=09) uniform sampler3D primaryNoise;
+layout (binding=0) uniform sampler2DShadow shadowTex;
+layout (binding=1) uniform sampler2D textureSample;
+layout (binding=2) uniform sampler2D ambientColor;
+layout (binding=3) uniform sampler2D diffuseColor;
+layout (binding=4) uniform sampler2D specularColor;
+layout (binding=5) uniform sampler2D shininessMap;
+layout (binding=6) uniform sampler2D normMap;
+layout (binding=7) uniform samplerCube environmentMap;
+layout (binding=8) uniform sampler2D channelMap;
+layout (binding=9) uniform sampler3D primaryNoise;
 layout (binding=10) uniform sampler3D secondaryNoise;
 layout (binding=11) uniform sampler3D tertiaryNoise;
 
@@ -99,6 +101,69 @@ void main(void)
 	
 	//color = texture(s,tc);
 	vec4 textureColor = texture(textureSample, tc);
+	vec4 channelColor = texture(channelMap, tc);
+	
+	
+	if(channelColor.x > 0.3 || channelColor.y > 0.3 || channelColor.z > 0.3){
+		
+		if(
+			max(channelColor.x, max(channelColor.y, channelColor.z)) == channelColor.x
+		){
+			
+			textureColor = texture(primaryNoise, vecPosition/4.0+0.05);
+			
+		}
+		else if(
+			max(channelColor.x, max(channelColor.y, channelColor.z)) == channelColor.y
+		){
+			
+			textureColor = texture(secondaryNoise, vecPosition/4.0+0.05);
+			
+		}
+		else if(
+			max(channelColor.x, max(channelColor.y, channelColor.z)) == channelColor.z
+		){
+			
+			textureColor = texture(tertiaryNoise, vecPosition/4.0+0.05);
+			
+		}
+		else{
+			if(channelColor.x==channelColor.y && channelColor.x==channelColor.z){
+				textureColor = (
+					texture(tertiaryNoise, vecPosition/4.0+0.05)+
+					texture(secondaryNoise, vecPosition/4.0+0.05)+
+					texture(primaryNoise, vecPosition/4.0+0.05)
+				);
+			}
+			else if(channelColor.x==channelColor.y){
+				textureColor = (
+					texture(tertiaryNoise, vecPosition/4.0+0.05)+
+					texture(secondaryNoise, vecPosition/4.0+0.05)
+				);
+				
+			}
+			else if(channelColor.x==channelColor.z){
+				textureColor = (
+					texture(tertiaryNoise, vecPosition/4.0+0.05)+
+					texture(primaryNoise, vecPosition/4.0+0.05)
+				);
+				
+			}
+			else if(channelColor.y==channelColor.z){
+				textureColor = (
+					texture(secondaryNoise, vecPosition/4.0+0.05)+
+					texture(primaryNoise, vecPosition/4.0+0.05)
+				);
+				
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
 	
 	vec4 ambientColor = texture(ambientColor, tc);
 	vec4 diffuseColor = texture(diffuseColor, tc);
@@ -156,7 +221,7 @@ void main(void)
 	if(maxFilter < 1){
 		maxFilter = 1;
 	}
-	vec3 reflectionColor = ((texture(environmentMap,r)).xyz) *  (reflectionFilter/maxFilter) * shininessLevel.x;
+	vec3 reflectionColor = ((texture(environmentMap,r)).xyz) *  (reflectionFilter/maxFilter) * shininessLevel.xyz/10;
 	
 	/*
 		Now on to the dark subject of shadows
@@ -165,13 +230,13 @@ void main(void)
 	//*
 	float shadowFactor=0.0;
 	
-	float swidth = 2.5;
-	vec2 o = mod(floor(gl_FragCoord.xy), 2.0) * swidth;
-	shadowFactor += lookup(-1.5*swidth + o.x,  1.5*swidth - o.y);
-	shadowFactor += lookup(-1.5*swidth + o.x, -0.5*swidth - o.y);
-	shadowFactor += lookup( 0.5*swidth + o.x,  1.5*swidth - o.y);
+	float swidth = 1;
+	vec2 o = mod(floor(gl_FragCoord.xy), 1) * swidth;
+	shadowFactor += lookup(-0.5*swidth + o.x,  0.5*swidth - o.y);
+	shadowFactor += lookup(-0.5*swidth + o.x, -0.5*swidth - o.y);
+	shadowFactor += lookup( 0.5*swidth + o.x,  0.5*swidth - o.y);
 	shadowFactor += lookup( 0.5*swidth + o.x, -0.5*swidth - o.y);
-	shadowFactor = shadowFactor / 40.0;
+	shadowFactor = shadowFactor / 4.0;
 	
 	
 	vec4 shadowColor = vec4(ambient,1.0)*textureColor;
@@ -186,17 +251,12 @@ void main(void)
 	//*/ 
 	//*
 	
-	vec4 litColor = (textureColor * shadowFactor);
-	//vec4 litColor = (textureColor * vec4((adsRaw), 1.0));
-	//vec4 litColor = textureColor;
+	vec4 litColor = (textureColor * vec4((adsRaw), 1.0));
 	
-	//vec4 colorSample = mix(shadowColor,litColor,shadowFactor)+vec4(reflectionColor, 1.0);
-	//*/
-	
-	//Something about the shadow factor is broken
-	vec4 colorSample = vec4(shadowFactor, 0,0,1);
+	vec4 colorSample = mix(shadowColor,litColor,shadowFactor)+vec4(reflectionColor, 1.0);
 	
 	color = mix(fogColor,colorSample,fogFactor);
+	//color = texture(tertiaryNoise, vecPosition/4.0+0.05);
 	//color = vec4(ambient,1);
 	//color = light.diffuse;
 	//color = ambientColor;
