@@ -26,6 +26,7 @@ import org.joml.*;
 public class Camera{
 	
 	protected Matrix4f transformation;
+	protected Vector3f offset;
 	
 	/*
 	private float camYaw = 0f; //Side to side
@@ -36,6 +37,10 @@ public class Camera{
 	
 	public Camera(){
 		this.transformation = new Matrix4f();
+	}
+	
+	public void setOffset(Vector3f offsetVec){
+		this.offset = new Vector3f(offsetVec);
 	}
 	
 	public void setPosition(float x, float y, float z){
@@ -124,7 +129,10 @@ public class Camera{
 	
 	public Matrix4f returnMatrix(){
 		
-		return(new Matrix4f(this.transformation));
+		Matrix4f cameraLocation = new Matrix4f(this.transformation);
+		cameraLocation.translateLocal(this.offset);
+		
+		return(cameraLocation);
 		
 	}
 	

@@ -277,11 +277,26 @@ public class Code extends JFrame implements GLEventListener
 	public void display(GLAutoDrawable drawable)
 	{	
 		
-		//GL4 gl = (GL4) GLContext.getCurrentGL();
+		GL4 gl = (GL4) GLContext.getCurrentGL();
+		int viewWidth =  myCanvas.getWidth();
+		int viewHeight = myCanvas.getHeight();
 		
 		//gl.glEnable(GL_DEBUG_OUTPUT);
 		
-		render();
+		
+		gl.glViewport(0, 0, viewWidth, viewHeight);
+		gl.glClear(GL_DEPTH_BUFFER_BIT);
+		gl.glClear(GL_COLOR_BUFFER_BIT);
+		
+		gl.glViewport(0,0,viewWidth/2,viewHeight);
+		
+		render(-1);
+		
+		gl.glViewport(viewWidth/2,0,viewWidth/2,viewHeight);
+		
+		render(1);
+		
+		
 	}
 	
 	private void animationFrame(){
@@ -318,7 +333,7 @@ public class Code extends JFrame implements GLEventListener
 		
 	}
 	
-	public void render(){
+	public void render(int eyePolarity){
 		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		
@@ -326,9 +341,9 @@ public class Code extends JFrame implements GLEventListener
 		
         //gl.glEnable(GL_DEBUG_OUTPUT);
 		
-		aspect = (float) myCanvas.getWidth() / (float) myCanvas.getHeight();
+		aspect = ((float) myCanvas.getWidth()/2) / (float) myCanvas.getHeight();
 		//gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		gl.glClear(GL_COLOR_BUFFER_BIT);
+		//gl.glClear(GL_COLOR_BUFFER_BIT);
 		gl.glClear(GL_DEPTH_BUFFER_BIT);
 		
 		//System.out.println("Cleared");
@@ -374,6 +389,10 @@ public class Code extends JFrame implements GLEventListener
 				0
 			)
 		);
+		
+		Vector3f eyeOffset = new Vector3f(0.5f*((float)eyePolarity),0.0f,0.0f);
+		
+		mainCamera.setOffset(eyeOffset);
 		
 		if(frameCycle == 0){
 			lightTimer++;
