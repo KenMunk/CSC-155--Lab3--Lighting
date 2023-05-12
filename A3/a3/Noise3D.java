@@ -21,6 +21,7 @@ public abstract class Noise3D extends Texture3D{
 	protected double frequency;
 	protected double turbulencePow;
 	protected double maxZoom;
+	protected Matrix4fc colorTransform;
 	
 	public Noise3D(int width, int height, int depth, double frequency, double turbulencePow, double maxZoom){
 		super(width,height,depth);
@@ -30,6 +31,7 @@ public abstract class Noise3D extends Texture3D{
 		this.frequency = frequency;
 		this.turbulencePow = turbulencePow;
 		this.maxZoom = maxZoom;
+		this.colorTransform = new Matrix4f().identity();
 	}
 
 	protected void generateNoise()
@@ -49,6 +51,19 @@ public abstract class Noise3D extends Texture3D{
 	    { for (int k=0; k<this.depth; k++)
 	      {	
 			Color c = colorOperation(i,j,k);
+			
+			Vector3f colorVec = new Vec3((float)c.getRed()/255f,(float)c.getGreen()/255f,(float)c.getBlue()/255f);
+			
+			Matrix4f colorMatrix = new Matrix4f();
+			colorMatrix.translate(colorVec);
+			colorMatrix.mul(colorTransform);
+			colorMatrix.getTranslation(colorVec);
+			
+			c = colorOperation(
+				(byte)Math.min(Math.abs(Math.round(color.x*255)),255),
+				(byte)Math.min(Math.abs(Math.round(color.y*255)),255),
+				(byte)Math.min(Math.abs(Math.round(color.z*255)),255)
+			);
 
 	        data[i*(this.width*this.height*4)+j*(this.height*4)+k*4+0] = (byte) c.getRed();
 	        data[i*(this.width*this.height*4)+j*(this.height*4)+k*4+1] = (byte) c.getGreen();

@@ -37,6 +37,13 @@ public class TextureBinding{
 		this.textureType = GL_TEXTURE_2D;
 	}
 	
+	public void setTexture(int textureMemPos, int textureType){
+		
+		this.texturePath = "pre-defined texture";
+		this.memoryLocation = textureMemPos;
+		this.textureType = textureType;
+	}
+	
 	public int getLocation(){
 		int memLoc = this.memoryLocation;
 		return(memLoc);

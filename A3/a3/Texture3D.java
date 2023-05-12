@@ -32,7 +32,7 @@ public abstract class Texture3D{
 	
 	protected abstract void fillDataArray(byte data[]);
 	
-	public void bindTexture(){
+	public int bindTexture(){
 		
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		
@@ -61,6 +61,13 @@ public abstract class Texture3D{
 		
 		this.textureBinding = textureID;
 		
+		return(this.textureBinding);
+	}
+	
+	public int getTextureBinding(){return (this.textureBinding);}
+	
+	public TextureBinding textureBinding(String description){
+		return new TextureBinding(this.bindTexture(), GL_TEXTURE_3D);
 	}
 	
 	
